@@ -50,6 +50,9 @@ the relaxation of vertex $v$. We know that the labels give a correct shortest pa
 \subsection{Nonnegative edge weights}
 \label{sec:nonn-edge-weights}
 
+\subsubsection{Simple algorithm}
+\label{sec:simple-algorithm}
+
 For a planar graph with nonnegative edge weights, Dijkstra's algorithm runs in $O(n \log n)$ as $m \leq 3n - 6$. It is possible to improve this to $O(n)$. To get there, recall that and $r$-division of a planar graph is a partition of the graph into $\Theta(n/r)$ regions of size $O(r)$ with boundary size $O(\sqrt{r})$. An $r$-division of a planar graph can be computed in linear time.
 
 A simple $O(n\sqrt{\log n \log \log n})$ emerges quite beautifully just from the $r$-division if we set $r = \frac{\log n}{\log \log n}$. The algorithm follows a divide-and-conquer approach in which each region is processed first, followed by a clean-up phase where the results are merged.
@@ -95,18 +98,70 @@ Using $r=\frac{\log n}{\log \log n}$, the first phase is bounded above by
 \]
 the second phase is an SSSP in a size $O(n \frac{\sqrt{\log \log n}}{\sqrt{\log n}})$ graph, and thus also $O(n \sqrt{\log n \log \log n})$, while the tidying up is a series of SSSPs in each of the regions, and has the same bound as the first phase---$O(n \sqrt{\log n \log \log n})$. The total time bound ends up $O(n \sqrt{\log n \log \log n})$.
 
+\subsubsection{Recursion}
+\label{sec:recursion}
+
+The key idea that can improve the running time to linear is to go deeper inside the recursive world. Instead of just using an $r$-division of the graph, we recursively subdivide each region until we reach edges which are atomic regions.
+
 The simple algorithm shown above is an improvement over Dijkstra's algorithm, but one can do better. In fact, we can achieve linear time by recursively subdividing the graph. Without loss of generality, assume the graph is directed, and that each node has at most two incoming and two outgoing edges. We call a region atomic if it contains only one edge $uv$. A nonatomic region will have as children subregions that are contained within it.
 
 For each region $R$, we maintain a priority queue $Q(R)$ that stores the subregions of $R$ if $R$ is nonatomic, or the single arc $uv$ is $R$ is atomic. The algorithm ensures that for every region $R$, the minimum element of $Q(R)$ is the minimum label $d(v)$ over all edges $vw$ in $R$ that remain to be processed.
 
 \begin{algorithm}
-  \caption{alg:process}
+  \caption{Process region}
+  \label{alg:process}
   \begin{algorithmic}
-    \If {$R$ contains only $uv$}
-    \Else
-    \EndIf
+    \Procedure{Process}{}
+      \If {$R$ contains only $uv$}
+        \If {$d(v) > d(u) + c(u,v)$}
+          \State $d(v) \gets d(u) + c(u,v)$
+          \State for each outgoing edge $vw$ of $v$, call \Call{Update}{$R(vw),vw,d(v)$}
+        \EndIf
+        \State $Q(R).updateKey(uv,\infty)$
+      \Else
+        \Repeat
+          \State $R' \gets Q(R).getMin()$
+          \State \Call{Process}($R'$)
+          \State $Q(R).updateKey(R',Q(R').getMinKey())$
+        \Until {$Q(R).getMinKey()$ is infinity or if repeated $\alpha_{h(R)}$ times}
+      \EndIf
+    \EndProcedure
   \end{algorithmic}
 \end{algorithm}
+
+\begin{algorithm}
+  \caption{Update region}
+  \label{alg:update}
+  \begin{algorithmic}
+    \Procedure{Update}{$R,x,k$}
+      \State $Q(R).updateKey(x,k)$
+      \If {$updateKey$ reduced the value of $Q(R).getMinKey()$}
+        \State \Call{Update}($parent(R),R,k$)
+      \EndIf
+    \EndProcedure
+  \end{algorithmic}
+\end{algorithm}
+
+The procedures are used in algorithm~\ref{alg:linear}.
+
+\begin{algorithm}
+  \label{alg:linear}
+  \caption{Faster SSSP}
+  \begin{algorithmic}
+    \State Find recursive subdivision $R(G), R(P_i), \ldots, R(uv)$
+    \State Allocate queue $Q$ for each region
+    \State $d(v) \gets \infty, \forall v$
+    \State $d(s) \gets 0$
+    \ForAll {$sv \in E(G)$}
+      \State \Call{Update}{$R(sv),sv,0$}
+    \EndFor
+    \While {$Q(R(G)).getMinKey() < \infty$}
+      \State \Call{Process}{$R(G)$}
+    \EndWhile
+  \end{algorithmic}
+\end{algorithm}
+
+By playing around with the number of levels, number of nodes per region per level, and the $\alpha_i$, we can achieve linear time. To give an intuition, we present here a $O(n \log \log n)$ algorithm and briefly comment on how to change it to get rid of the $\log \log n$ factor.
 
 \subsection{Arbitrary edge weights}
 \label{sec:arbitr-edge-weights}
