@@ -41,7 +41,6 @@
 \section{Background}
 \label{sec:background}
 
-
 \section{Planar Graph Separators}
 \label{sec:graph-sep}
 
@@ -148,7 +147,6 @@ For a planar graph with nonnegative edge weights, Dijkstra's algorithm runs in $
 A simple $O(n\sqrt{\log n \log \log n})$ emerges quite beautifully just from the $r$-division if we set $r = \frac{\log n}{\log \log n}$. The algorithm follows a divide-and-conquer approach in which each region is processed first, followed by a clean-up phase where the results are merged.
 
 \begin{algorithm}[!htb]
-  \caption{Shortest paths in each region $R$}
   \label{alg:sssp-region}
   \begin{algorithmic}
     \ForAll {Regions $R$}
@@ -163,7 +161,6 @@ A simple $O(n\sqrt{\log n \log \log n})$ emerges quite beautifully just from the
 The first step is to compute the single-source shortest paths for each boundary node in each region $R$ (algorithm~\ref{alg:sssp-region}). We can now replace each region $R$ by a complete graph on $R$'s boundary nodes with shortest paths distances between any two nodes. Call this auxiliary graph $G'$. The second phase of the algorithm is to compute the SSSP from $s$ in $G'$. This gives the true shortest paths from $s$ to all the boundary nodes. Finally, we must tidy up by finding the distances from $s$ to the nodes inside each region (algorithm~\ref{alg:sssp-full}).
 
 \begin{algorithm}[!htb]
-  \caption{Clean up: shortest paths from $s$ to inside of each region $R$}
   \label{alg:sssp-full}
   \begin{algorithmic}
     \ForAll {Regions $R$}
@@ -191,14 +188,30 @@ the second phase is an SSSP in a size $O(n \frac{\sqrt{\log \log n}}{\sqrt{\log 
 \subsection{Recursion}
 \label{sec:recursion}
 
-The key idea that can improve the running time to linear is to go deeper inside the recursive world. Instead of just using an $r$-division of the graph, we recursively subdivide each region until we reach edges which are atomic regions.
-
 The simple algorithm shown above is an improvement over Dijkstra's algorithm, but one can do better. In fact, we can achieve linear time by recursively subdividing the graph. Without loss of generality, assume the graph is directed, and that each node has at most two incoming and two outgoing edges. We call a region atomic if it contains only one edge $uv$. A nonatomic region will have as children subregions that are contained within it.
 
 For each region $R$, we maintain a priority queue $Q(R)$ that stores the subregions of $R$ if $R$ is nonatomic, or the single arc $uv$ is $R$ is atomic. The algorithm ensures that for every region $R$, the minimum element of $Q(R)$ is the minimum label $d(v)$ over all edges $vw$ in $R$ that remain to be processed.
 
+
 \begin{algorithm}
-  \caption{Process region}
+  \label{alg:linear}
+  \begin{algorithmic}[1]
+    \State Find recursive subdivision $R(G), R(P_i), \ldots, R(uv)$
+    \State Allocate queue $Q$ for each region
+    \State $d(v) \gets \infty, \forall v$
+    \State $d(s) \gets 0$
+    \ForAll {$sv \in E(G)$}
+      \State \Call{Update}{$R(sv),sv,0$}
+    \EndFor
+    \While {$Q(R(G)).minKey() < \infty$}
+      \State \Call{Process}{$R(G)$}
+    \EndWhile
+  \end{algorithmic}
+\end{algorithm}
+
+The algorithm repeatedly calls two subprocedures \textsc{Process} and \textsc{Update} to process individual regions and update parent regions. Unlike Dijkstra's algorithm, the work we do in a region is only speculative. Often we cannot afford to fully process a region, and executions are stopped after a fixed number of steps.
+
+\begin{algorithm}[!h]
   \label{alg:process}
   \begin{algorithmic}[1]
     \Procedure{Process}{}
@@ -219,8 +232,8 @@ For each region $R$, we maintain a priority queue $Q(R)$ that stores the subregi
   \end{algorithmic}
 \end{algorithm}
 
-\begin{algorithm}
-  \caption{Update region}
+
+\begin{algorithm}[!h]
   \label{alg:update}
   \begin{algorithmic}[1]
     \Procedure{Update}{$R,x,k$}
@@ -229,25 +242,6 @@ For each region $R$, we maintain a priority queue $Q(R)$ that stores the subregi
         \State \Call{Update}{$parent(R),R,k$}
       \EndIf
     \EndProcedure
-  \end{algorithmic}
-\end{algorithm}
-
-The procedures are used in algorithm~\ref{alg:linear}.
-
-\begin{algorithm}
-  \label{alg:linear}
-  \caption{Faster SSSP}
-  \begin{algorithmic}[1]
-    \State Find recursive subdivision $R(G), R(P_i), \ldots, R(uv)$
-    \State Allocate queue $Q$ for each region
-    \State $d(v) \gets \infty, \forall v$
-    \State $d(s) \gets 0$
-    \ForAll {$sv \in E(G)$}
-      \State \Call{Update}{$R(sv),sv,0$}
-    \EndFor
-    \While {$Q(R(G)).minKey() < \infty$}
-      \State \Call{Process}{$R(G)$}
-    \EndWhile
   \end{algorithmic}
 \end{algorithm}
 
@@ -328,7 +322,7 @@ We restate the algorithm:
 \item Repeat $\log n$ times: Select the lowest labeled node $v$ in the current region that has active outgoing edges in the region. Relax and deactive its outgoing edges $vw$ in that region. For each of the other endpoints $w$ of these edges, if relaxing the edge $vw$ resulted in decreasing the label of $w$, then activate the outgoing edges of $w$.
 \end{enumerate}
 
-The majority of the time is spent in invocations of \textsc{Process}. We say that an invocation of \textsc{Process} on region $R$ is \emph{truncated} if $Q(R).minKey()$ is infinity at the end of the invocation. All level $0$ invocations are truncated. The crux of the analysis relies on a \emph{charging invariant}:
+The majority of the time is spent in invocations of \textsc{Process}. We say that an invocation of \textsc{Process} on region $R$ is \emph{truncated} if $Q(R).minKey()$ is infinity at the end of the invocation. All level $0$ invocations are truncated. The crux of the analysis relies on the following \emph{charging invariant} (the proof of which is in appendix A):
 
 \noindent\makebox[\textwidth][c]{%
 \begin{minipage}{.8\textwidth}
@@ -359,14 +353,29 @@ s_1 \leq s_0/\alpha_1 + t_1 = O(n/\log n) + O(n/\log^2 n).
 s_2 \leq s_1/\alpha_2 + 1 = s_1 + 1 = O(n/\log n).
 \]
 
+Let's look at the time spent per invocation at each level. We bound the time required per queue operation; since at level $i$ there are $\alpha_i$ calls to lower levels, and thus $\alpha_i$ queue operations, this gives us a time bound per invocation.
+
+\begin{itemize}
+\item At level $0$, there is only one item in the queue, so operations take constant time, and there are $\alpha_0 = 0$ calls to lower levels.
+\item At level $1$, queues are of size $O(log^4 n)$, so queue operations take $O(\log \log n)$ time. There are $\alpha_1 = \log n$ calls to lower levels, for a total of $O(\log n \log \log n)$.
+\item At level $2$, queues are of size $O(n/\log^4 n)$, so queue operations take $O(\log n)$ time, and there are $\alpha_2 = 1$ calls to lower levels, for a total of $O(\log n)$.
+\end{itemize}
+
+To get our total time bounds, we multiply the time per invocation with the number of invocations at each level, and add everything up.
+\begin{align*}
+  \text{Total} &= O(\log n) \cdot O(n/\log n) + O(\log n \log \log n) \cdot O(n/ \log n) + O(1) \cdot O(n) \\
+               &= O(n \log \log n)
+\end{align*}
+
 
 \begin{table*}[!h]\centering
 \ra{1.3}
-\begin{tabular}{@{}lllll@{}} \toprule
-  Level & Calls & Time per invocation & No.\ $(R,v)$ pairs & Charge\\ \midrule
-  $2$ & $1$ & $O(\log n)$ & 1 & 1 + 1 + $\log n$\\
-  $1$ & $\log n$ & $O(\log n \log \log n)$ & $O(n/\log^2 n)$ & $1 + \log n$\\
-  $0$ & $0$ & $O(1)$ & $O(n)$ & $1$\\
+\begin{tabular}{@{}llllll@{}} \toprule
+  Level & Calls & Time per invocation & No.\ $(R,v)$ pairs & No.\ invocations & Total time\\ \midrule
+  $2$ & $1$ & $O(\log n)$ & 1 & $O(n/\log n)$ & $O(n)$\\
+  $1$ & $\log n$ & $O(\log n \log \log n)$ & $O(n/\log^2 n)$ & $O(n/\log n)$ & $O(n\log \log n)$\\
+  $0$ & $0$ & $O(1)$ & $O(n)$ & $O(n)$ & $O(n)$\\ \midrule
+  Total & & & & & $O(n\log \log n)$\\
   \bottomrule
 \end{tabular}
 \end{table*}
