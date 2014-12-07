@@ -6,6 +6,8 @@
 
 \documentclass[12pt]{article}
 
+\usepackage{booktabs}
+\usepackage{framed}
 \usepackage{fullpage}
 \usepackage{parskip}
 
@@ -19,7 +21,10 @@
 % Algorithms
 \usepackage{algpseudocode,algorithm}
 
-\title{From Boston to San Francisco:\\ A Survey of Shortest Paths Algorithms in Planar Graphs}
+% Other
+\newcommand{\ra}[1]{\renewcommand{\arraystretch}{#1}}
+
+\title{All Aboard the Pony Express:\\ Shortest Paths in Planar Graphs}
 \author{Stuart Baker, \"{O}mer Cerraho\u{g}lu, Sebastian Claici}
 \date{\today}
 
@@ -310,14 +315,64 @@ From lemma~\ref{lemma:invariant}, the following corollary follows:\\
 
 When the algorithm terminates, the minimum key of the priority queue associated with the entire graph will be infinity, and by corollary~\ref{cor:relaxed} all edges will be relaxed.
 
+\subsubsection{Analysis}
+\label{sec:analysis}
+
+A recursive subdivision of a graph induces a hierarchy of levels. We will say that edges are at level $0$, and levels increase up to the region containing the entire graph.
+
+We show that dividing the graph into $O(n/\log^4n)$ regions of size $O(\log^4 n)$ with boundaries of size $O(\log^2 n)$ and setting $\alpha_1 = \log n$ and $\alpha_2 = 1$ yields an $O(n \log \log n)$ single source shortest paths algorithm. Note that the division is simply an $r$-division with $r=\log^4 n$. There are $3$ levels in this division: the edges, the regions of the $r$-division, and the whole graph.
+
+We restate the algorithm:
+\begin{enumerate}
+\item Select the region containing the lowest labeled node that has active outgoing edges in the region.
+\item Repeat $\log n$ times: Select the lowest labeled node $v$ in the current region that has active outgoing edges in the region. Relax and deactive its outgoing edges $vw$ in that region. For each of the other endpoints $w$ of these edges, if relaxing the edge $vw$ resulted in decreasing the label of $w$, then activate the outgoing edges of $w$.
+\end{enumerate}
+
+The majority of the time is spent in invocations of \textsc{Process}. We say that an invocation of \textsc{Process} on region $R$ is \emph{truncated} if $Q(R).minKey()$ is infinity at the end of the invocation. All level $0$ invocations are truncated. The crux of the analysis relies on a \emph{charging invariant}:
+
+\noindent\makebox[\textwidth][c]{%
+\begin{minipage}{.8\textwidth}
+  For any pair $(R,v)$ of region $R$ and entry node $v$, there is an invocation $B$ of \textsc{Process} such that all invocations charging to $(R,v)$ are descendants of $B$ (or $B$ itself).
+\end{minipage}}
+
+Intuitively, the \emph{charging invariant} says that the number of charges to any pair is small, so the number of truncated invocations will be small.
+
+ Let us first consider the number of pairs $(R,v)$ on each level to which we can charge truncated invocations to (recall that $v$ is an entry node into $R$):
+\begin{itemize}
+\item If $R$ has level $0$, then $R$ is charged by at most one level $0$ invocation. There are $O(n)$ pairs $(R,v)$ on level $0$, and thus $O(n)$ chargers.
+\item If $R$ has level $1$, the pair is charged by at most one level $1$ invocation and at most $\alpha_1 = \log n$ level $0$ invocations. There are $O(n/\log^4n)\cdot O(\log^2 n)$ pairs on level $1$.
+\item If $R$ has level $2$, then the pair is charged by at most one level $2$ invocation, at most $\alpha_2 = 1$ level $1$ invocations, and at most $\alpha_2\alpha_1 = \log n$ level $0$ invocations. There is only one pair $(R,v)$ on level $2$, namely $(R_G,s)$.
+\end{itemize}
+
+Let $s_i$ be the total number of invocations at level $i$ (truncated and non-truncated), and $t_i$ be the number of truncated chargers at level $i$.
+
+All level $0$ invocations are truncated, thus
+\[
+s_0 = O(n)
+\]
+ Each non-truncated level $j$ invocation results in $\alpha_j$ invocations at level $j-1$. Hence the number of level $1$ invocations is
+\[
+s_1 \leq s_0/\alpha_1 + t_1 = O(n/\log n) + O(n/\log^2 n).
+\]
+ Similarly, the total number of level $2$ invocations is
+\[
+s_2 \leq s_1/\alpha_2 + 1 = s_1 + 1 = O(n/\log n).
+\]
+
+
+\begin{table*}[!h]\centering
+\ra{1.3}
+\begin{tabular}{@{}lllll@{}} \toprule
+  Level & Calls & Time per invocation & No.\ $(R,v)$ pairs & Charge\\ \midrule
+  $2$ & $1$ & $O(\log n)$ & 1 & 1 + 1 + $\log n$\\
+  $1$ & $\log n$ & $O(\log n \log \log n)$ & $O(n/\log^2 n)$ & $1 + \log n$\\
+  $0$ & $0$ & $O(1)$ & $O(n)$ & $1$\\
+  \bottomrule
+\end{tabular}
+\end{table*}
+
 \section{Single source shortest paths with arbitrary edge weights}
 \label{sec:arbitr-edge-weights}
-
-\section{Multiple source shortest paths}
-\label{sec:mult-source-short}
-
-\section{Extensions to higher genus}
-\label{sec:extens-high-genus}
 
 
 \bibliographystyle{plain}
