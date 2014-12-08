@@ -53,13 +53,17 @@
 \section{Introduction}
 \label{sec:introduction}
 
-Finding shortest paths in graphs is one of the oldest combinatorial optimization problems. At least in the sense of path finding, there are references dating back to the early 1800's (reference). The standard algorithm for single-source shortest paths on a graph with no negative edge weights is Dijkstra's algorithm (reference).
+Finding shortest paths in graphs is one of the oldest combinatorial optimization problems. At least in the sense of path finding, there are references dating back to the late 1800's~\cite{wiener1873ueber}. The standard algorithm for single-source shortest paths on a graph with no negative edge weights is Dijkstra's algorithm~\cite{dijkstra1959note}.
 
 While for general graphs the problem has been effectively solved decades ago, for the special case where the graph is planar has seen a number of surprising developments in recent years. We enumerate these here, and detail them in later sections.
 
 For directed graphs where the edge weights are non-negative, the first improvement over $O(n\log n)$ came from Federickson who gave a $O(n \sqrt{\log n}$) bound~\cite{federickson1987fast}. This was improved nearly a decade later by Henzinger et al.\ to linear time~\cite{henzinger1997faster}. We remark that for general \emph{undirected} graphs with positive edge weights, there are known linear time algorithms for single-source shortest paths in the RAM model~\cite{thorup1999undirected}.
 
 For directed graphs with arbitrary edge weights, there have been recent developments that greatly improve upon a naive $O(n^2)$ Bellman-Ford. In 2010, Klein, Mozes and Weimann gave a $O(n \log^2 n)$ algorithm~\cite{klein2010shortest}, which was improved to $O(n \log^2 n / \log \log n)$ shortly thereafter~\cite{mozes2010shortest}. Both algorithms make use of a $O(n \log n)$ multiple-source shortest paths algorithm due to Klein~\cite{klein2005multiple}.
+
+The goal of this paper is to provide intuition into some of the recent developments in planar graph theory.
+
+This paper is organized as follows: in section~\ref{sec:background} we provide background on the theorems we will need later on; in section~\ref{sec:graph-sep} we detail planar graph separators which are used extensively in divide-and-conquer planar graph algorithms. In sections~\ref{sec:nonn-edge-weights}~and~\ref{sec:arbitr-edge-weights} we detail faster algorithms for single-source shortest paths in graphs with non-negative, respectively arbitrary edge weights.
 
 \section{Background}
 \label{sec:background}
@@ -70,7 +74,7 @@ Later on, we make use of several properties of planar graphs in later sections. 
   Let $C$ be any closed curve in the plane. Removal of $C$ divides the plane into exactly two connected regions, the ``inside'' and the ``outside'' of $C$.
 \end{theorem}
 
-An interesting and relevant proof of the Jordan curve theorem that uses the non-planarity of $K_{3,3}$ was given in~\cite{thomassen1992jordan}.\\
+An interesting proof of the Jordan curve theorem that uses the non-planarity of $K_{3,3}$ was given in~\cite{thomassen1992jordan}.\\
 
 \begin{theorem}
   Any $n$-vertex planar graph with $n \geq 3$ contains no more than $3n-6$ edges.\\
@@ -288,6 +292,7 @@ For each region $R$, we maintain a priority queue $Q(R)$ that stores the subregi
 
 
 \begin{algorithm}
+  \refstepcounter{algorithm}
   \label{alg:linear}
   \begin{algorithmic}[1]
     \State Find recursive subdivision $R(G), R(P_i), \ldots, R(uv)$
@@ -484,7 +489,17 @@ Otherwise, recall that $O(n/\log n)$ level $0$ invocations of \textsc{Process} a
 \subsubsection{Linear time}
 \label{sec:linear-time}
 
+To improve the running time to linear, we must use a recursive subdivision. Let $r_i$ be the size of the subregions on level $i$, and $\alpha_i$ be the number of iterations per invocation of \textsc{Process} for level $i$. In the $O(n \log \log n)$ algorithm, we had $r_0 = 1, r_1 = \log^4 n, r_2 = n$, and $\alpha_0 = 0, \alpha_1 = \log n, \alpha_2 = 1$.
 
+Define
+\[
+  \alpha_i = \frac{4\log r_{i+1}}{3 \log r_i}
+\]
+with $\alpha_0 = 0$, and $\alpha_{h(G)} = 1$.
+
+To achieve linear time, we define the $r_i$ inductively by $r_0 = 1$, and $r_{i+1} = 16^{r_i^{1/6}}$. This defines a division into roughly $\log^{*} n$ levels. The algorithm is as algorithm~\ref{alg:linear} with \textsc{Process} and \textsc{Update} as given there.
+
+The correctness proof did not rely on the $\alpha_i$ or $r_i$ and follows as in section~\ref{sec:correctness}. Using a very similar argument as in section~\ref{sec:analysis}, it is possible to show that the linear time bound holds for this choice of parameters.
 
 \section{Single source shortest paths with arbitrary edge weights}
 \label{sec:arbitr-edge-weights}
