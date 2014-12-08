@@ -131,30 +131,22 @@ Finally, specifically for shortest paths algorithms, we use the fact that every 
 
 \section{Planar Graph Separators}
 \label{sec:graph-sep}
+
     % TODO Miller's Algorithm
     % TODO Last point in Tarjan's algorithm
-    % TODO Naming on r-subdivision
-    % TODO Recursive subdivision
 
     \subsection{Overview}
     \label{sec:graph-sep-overview}
-
-    % TODO Add explanation as to why divide-and0conquer is good.
-    % TODO Need citation for Kuratowski's theorem
 
     For large planar graphs, a common approach to solving a specific problem is to take a divide-and-conquer approach. By dividing the problem into two or more smaller chunks and solving each subproblem, calculations that are difficult on a large scale can still be done. The core problem in divide-and-conquer problems is finding a way to divide the problem space into smaller spaces and recurse until you reach a subspace that is small enough to allow for effective computation. The results at the lowest level are then rolled back up through the recursion to give the final answer.
 
     In order to tackle planar graphs, there are several important relations that we rely on. If $C$ is some closed curve in the plane, by removing $C$ you can divided the plane into exactly two connected regions: the inside region and the outside region. Additionally, Kuratowski's theorem states that a graph is planar if and only if it does not have any generalized subgraphs that are either a complete graph of five nodes or a complete bipartite graph of two sets of three nodes. From Kuratowski's theorem we know that we can shrink any edge of a planar graph to a single vertex and preserve the planarity. Expanding this idea, we can shrink any subgraph of a planar graph to a single vertex and still have a planar graph.
 
-    % Any $n$ vertex planar graph with more than three nodes ($n \geq 3$) has at most $3n - 6$ edges.
-
 
     \subsection{Fundamental Cycle Separators}
     \label{sec:graph-sep-fund-cycle-sep}
 
-    % TODO Need citation for Lipton and Tarjan
-
-    On method for dividing a planar graph into smaller set was developed by Lipton and Tarhan called the fundamental cycle separator. Lipton and Tarjan demonstrated that for any planar graph $G = (V,E)$ on $n = |V|$ vertices, and for any weight function $w: V \rightarrow \mathbb{R}^+$, it is possible to partition the nodes in the graph into three sections $A, B, C, \subseteq V$ with the following qualities.
+    On method for dividing a planar graph into smaller set was developed by Lipton and Tarhan called the fundamental cycle separator~\cite{lipton1979separator}. Lipton and Tarjan demonstrated that for any planar graph $G = (V,E)$ on $n = |V|$ vertices, and for any weight function $w: V \rightarrow \mathbb{R}^+$, it is possible to partition the nodes in the graph into three sections $A, B, C, \subseteq V$ with the following qualities.
     \begin{itemize}
         \item $w(A), w(B) \leq \alpha \cdot w(V)$ for some $\alpha \in (0,1)$
 
@@ -167,11 +159,6 @@ Finally, specifically for shortest paths algorithms, we use the fact that every 
 
     The algorithm is as follows:
     \begin{enumerate}
-
-        % TODO Ask Seb about the first 2 steps of the algorithm
-
-        % TODO Add citation and algorithm name for building the data structure
-        % \item Find a planar embedding of $G$ and build a data structure to contain that embedding. This can be performed in $\mathcal{O}(n)$ time using a technique developed by ###.
 
         \item Find the most costly component in the graph and run a depth-first search from this graph. This calculates the level of each vertex in the graph in provides the level values $(L(l))$ for every $l$. For the maximum depth $r$ in the level tree, add an additional level at $r+1$ that contains no vertices. This can be performed in $\mathcal{O}(n)$.
 
@@ -193,29 +180,41 @@ Finally, specifically for shortest paths algorithms, we use the fact that every 
             \item Contract all edges in $L_{\leq i_-}$ to form a super-vertex $v$ that is connected to all vertices $u \in L_{i_- + 1}$
         \end{itemize}
 
+
         \item From the condensed graph $G^{'}$, create a fundamental cycle separator
         \begin{itemize}
             \item Build a breadth-first tree from $G^{'}$ from $v$. This tree will have a depth $|i_+ - i_-| \leq \sqrt{n}$
 
             \item Triangulate the BFS tree.
 
-            \item Apply the fundamental cycle separator lemma presented above.
+            \item Apply the fundamental cycle separator lemma presented above to divide the graph into three groups.
         \end{itemize}
 
         \item Using this separator, return $A$ and $B$ as some combination of int$(C)$, ext$(C)$, $L_{< i_-}$, and $L_{> i_+}$. $S$ can be returned as a combination of $L_{i_-}$, $L_{i_+}$, and $C$.
+
+        Use fundamental cycle separator and levels (step 4) to construct a satisfactory vertex partition (lemma 3). Extend the partition from the connected components chosen (step 2) to the entire graph (theorem 4).
     \end{enumerate}
 
     \subsection{Miller's Algorithm}
     \label{sec:graph-sep-miller}
 
+    Miller showed an alternative method for separating a planar graph into two sections with a separator region. He demonstrated that every 2-connected triangulated planar graph with $n$ vertices has a simple cycle $C$ of length at most $4\sqrt{n}$~\cite{miller1984finding}. Like Lipton and Tarjan's algorithm, Miller's algorithm produces two sets, $A$ and $B$, each of which with no more than $\frac{2}{3}n$ vertices. Miller's Algorithm consists of two distinct phases:
+    \begin{enumerate}
+      \item Find a subgraph $H$ of the parent planar graph $G$ that has a diameter of $\sqrt{n}$ and a face size of $\sqrt{n}$
+
+      \item Find a separator contained in $H$
+    \end{enumerate}
+
+    Given that we now have the subgraph $H$ from the p[arent graph $G$, we now have to find the separator within $H$.
+    \begin{theorem}
+      If $G_\phi$is a 2-connected embedded planar graph with spanning tree $T$, then there exists a simple cycle weight separator of size at most $d + S$ with no face weight $> \frac{2}{3}$. Where $d$ is the diameter fo $T$, and $S$ is the maximum face size.
+    \end{theorem}
 
 
-    \subsection{Recursive Segmentation}
-    \label{sec:graph-sep-recursive-seg}
+    \subsection{r-Subdivision}
+    \label{sec:graph-sep-rsub}
 
-    % TODO Add a citation for Frederickson
-
-    The graph segmentation algorithms presented above can be used to recursively break a graph apart for a divide-and-conquer approach to solving problems. Specifically, the graph can be divided into $\Theta \left (\frac{n}{r} \right )$ regions, each of which have $\mathcal{O}(r)$ vertices and a total of $\mathcal{O} \left (\frac{n}{\sqrt{r}} \right )$ boundary vertices. Miller takes this definition a step further and defines a \textit{suitable} r-division of a planar graph as the r-division that satisfies two characteristics:
+    The graph segmentation algorithms presented above can be used to recursively break a graph apart for a divide-and-conquer approach to solving problems. Specifically, the graph can be divided into $\Theta \left (\frac{n}{r} \right )$ regions, each of which have $\mathcal{O}(r)$ vertices and a total of $\mathcal{O} \left (\frac{n}{\sqrt{r}} \right )$ boundary vertices. Frederickson takes this definition a step further and defines a \textit{suitable} r-division of a planar graph as the r-division that satisfies two characteristics~\cite{federickson1987fast}:
     \begin{enumerate}
         \item Each boundary vertex is contained in at most three regions
 
@@ -224,9 +223,14 @@ Finally, specifically for shortest paths algorithms, we use the fact that every 
 
     Starting with the initial graph $G$, all of the vertices are in the interior region. A separator algorithm can then be applied to the graph with all of the vertex weights set to $\frac{1}{n}$. This will produce three sets: $A$, $B$, and $C$. From these two sets, we can infer two regions that have the vertex sets $A_1 \subseteq A \cup C$ and $A_2 \subseteq B \cup C$. These two vertex sets will have sizes $\alpha n + \mathcal{O}\sqrt{n}$ and $(1 - \alpha) n + \mathcal{O}\sqrt{n}$ with $\frac{1}{3} \leq \alpha \leq \frac{2}{3}$. To continue the process, the separator algorithm can be recursively applied to any region that has more than $r$ vertices. The total runtime of this algorithm is $\mathcal{O} \left (n \log \left (\frac{n}{r} \right ) \right )$.
 
-    % TODO Ask Seb if I need to include the part on number of boundary vertices
+    However, to ensure that the two qualities that Miller enumerated hold, additional steps must be made. After applying the planar separator algorithm, there are three sets of vertices: $A$, $B$, and $C$. If we say that $C^{'}$ is the set of vertices in $C$ not adjacent to any vertex in $A \cup B$, the we can define $C^{''} = C - C^{'}$. Next, we need to identify the connected components $A_1, A_3, \ldots, A_q$ in $A \cup B \cup C^{'}$. Using this information, we can remove any vertex $v$ from $C^{''}$ and insert it into $A_i$ if that vertex is adjacent to a vertex in $A_i$, but not adjacent to a vertex in $A_j$ for $i \neq j$. This will ensure that a boundary vertex will be in at most three subgraphs. However, this does not ensure that there are at most $\Theta \left ( \frac{n}{r} \right )$ connected subgraphs. To ensure that there are no more than $\Theta \left ( \frac{n}{r} \right )$ connected subgraphs, we can apply a greedy approach. Sweep through the set of connected regions, join together any two neighboring regions that each have less than $\frac{r}{2}$ vertices. Furthermore, we have to ensure that all of the subregions do not possess more than$c \sqrt{r}$ boundary vertices. To solve this problem, we can run through the connected subgraphs and apply the separator technique to any subgraph that has more than $c \sqrt{r}$ boundary vertices. This does impose an additional requirement when merging small subgraphs that the number of boundary vertices in each group can be at most $\frac{c}{2} \sqrt{2}$.
 
-    However, to ensure that the two qualities that Miller enumerated hold, additional steps must be made. After applying the planar separator algorithm, there are three sets of vertices: $A$, $B$, and $C$. If we say that $C^{'}$ is the set of vertices in $C$ not adjacent to any vertex in $A \cup B$, the we can define $C^{''} = C - C^{'}$. Next, we need to identify the connected components $A_1, A_3, \ldots, A_q$ in $A \cup B \cup C^{'}$. Using this information, we can remove any vertex $v$ from $C^{''}$ and insert it into $A_i$ if that vertex is adjacent to a vertex in $A_i$, but not adjacent to a vertex in $A_j$ for $i \neq j$. This will ensure that a boundary vertex will be in at most three subgraphs. However, this does not ensure that there are at most $\Theta \left ( \frac{n}{r} \right )$ connected subgraphs. To ensure that there are no more than $\Theta \left ( \frac{n}{r} \right )$ connected subgraphs, we can apply a greedy approach. Sweep through the set of connected regions, join together any two neighboring regions that each have less than $\frac{r}{2}$ vertices.
+    \subsubsection{Recursive Subdivision}
+    \label{sec:graph-sep-rsub-recursive}
+
+    % TODO See if this is good enough...
+
+    Planar graphs can be recursively decomposed into smaller planar graphs. This allows the planar separators to be combined into a planar separator hierarchy which can be stored in a variety of data structures. One example is using a binary search trees to store the vertices within the planar graph in a hierarchical manner. Using this technique, it is possible to efficiently search within the planar graph.
 
 \section{Single source shortest paths with nonnegative edge weights}
 \label{sec:nonn-edge-weights}
