@@ -22,7 +22,8 @@
 \newtheorem{lemma}[theorem]{Lemma}
 
 % Algorithms
-\usepackage{algpseudocode,algorithm}
+\usepackage[noend]{algpseudocode}
+\usepackage{algorithm}
 
 % TikZ
 \usepackage{tikz}
@@ -138,7 +139,7 @@ A stereographic projection can be used to embed nodes on a plane onto a sphere w
 
 \begin{figure}[!htb]
   \centering
-  \begin{tikzpicture}[scale=0.8]
+  \begin{tikzpicture}[scale=0.6]
     \draw (-4,0) -- (4,0);
 
     \coordinate (aux) at (0,0);
@@ -306,14 +307,14 @@ A suitable $r$-division is shown in figure~\ref{fig:rsep}.
 \section{Single source shortest paths with non-negative edge weights}
 \label{sec:nonn-edge-weights}
 
-The fastest algorithm for single-source shortest paths in general graphs with non-negative edge weights is Dijkstra's algorithm which runs in time $O(m + n\log n)$. Planar graphs are sparse, so simply applying Dijkstra's algorithm on a planar graph already gives you an $O(n \log n)$ algorithm.
+The fastest algorithm for single-source shortest paths in general graphs with non-negative edge weights is Dijkstra's algorithm which runs in time $\mathcal{O}(m + n\log n)$. Planar graphs are sparse, so simply applying Dijkstra's algorithm on a planar graph already gives you an $\mathcal{O}(n \log n)$ algorithm.
 
 We can do much better by using the ideas developed in section~\ref{sec:graph-sep}.
 
 \subsection{Simple algorithm}
 \label{sec:simple-algorithm}
 
-A simple $O(n\sqrt{\log n \log \log n})$ emerges beautifully just from an $r$-division if we set $r = \frac{\log n}{\log \log n}$.
+A simple $\mathcal{O}(n\sqrt{\log n \log \log n})$ emerges beautifully just from an $r$-division if we set $r = \frac{\log n}{\log \log n}$. The first step is to compute the single-source shortest paths for each boundary node in each region $R$.
 
 \begin{algorithm}[!htb]
   \refstepcounter{algorithm}
@@ -328,7 +329,7 @@ A simple $O(n\sqrt{\log n \log \log n})$ emerges beautifully just from an $r$-di
   \end{algorithmic}
 \end{algorithm}
 
-The first step is to compute the single-source shortest paths for each boundary node in each region $R$ (algorithm~\ref{alg:sssp-region}). We can now replace each region $R$ by a complete graph on $R$'s boundary nodes with shortest paths distances between any two nodes. Call this auxiliary graph $G'$. The second phase of the algorithm is to compute the SSSP from $s$ in $G'$. This gives the true shortest paths from $s$ to all the boundary nodes. Finally, we must tidy up by finding the distances from $s$ to the nodes inside each region (algorithm~\ref{alg:sssp-full}).
+ We can now replace each region $R$ by a complete graph on $R$'s boundary nodes with shortest paths distances between any two nodes. Call this auxiliary graph $G'$. The second phase of the algorithm is to compute the SSSP from $s$ in $G'$. This gives the true shortest paths from $s$ to all the boundary nodes. Finally, we must tidy up by finding the distances from $s$ to the nodes inside each region.
 
 \begin{algorithm}[!htb]
   \refstepcounter{algorithm}
@@ -343,11 +344,11 @@ The first step is to compute the single-source shortest paths for each boundary 
   \end{algorithmic}
 \end{algorithm}
 
-To analyze the algorithm, we will need a few pieces of information:
+To analyze the algorithm, recall the properties of an $r$-division.
 \begin{itemize}
-\item Total number of boundary nodes is $O(\sqrt{r})O(n/r) = O(n/\sqrt{r})$.
-\item Number of nodes in $G'$ is $O(n/r)O(\sqrt{r})=O(n/\sqrt{r})$.
-\item Number of edges in $G'$ is $O(n/r)O(r) = O(n)$.
+\item Total number of boundary nodes is $\mathcal{O}(n/\sqrt{r})$.
+\item Number of nodes in $G'$ is $\mathcal{O}(n/r)O(\sqrt{r})=O(n/\sqrt{r})$.
+\item Number of edges in $G'$ is $\mathcal{O}(n/r)\mathcal{O}(r) = \mathcal{O}(n)$.
 \end{itemize}
 
 Using $r=\frac{\log n}{\log \log n}$, the first phase is bounded above by
@@ -356,13 +357,12 @@ Using $r=\frac{\log n}{\log \log n}$, the first phase is bounded above by
 \]
 the second phase is an SSSP in a size $O(n \frac{\sqrt{\log \log n}}{\sqrt{\log n}})$ graph, and thus also $O(n \sqrt{\log n \log \log n})$, while the tidying up is a series of SSSPs in each of the regions, and has the same bound as the first phase---$O(n \sqrt{\log n \log \log n})$. The total time bound ends up $O(n \sqrt{\log n \log \log n})$.
 
-\subsection{Recursion}
+\subsection{Recursive subdivisions}
 \label{sec:recursion}
 
-The simple algorithm shown above is an improvement over Dijkstra's algorithm, but one can do better. In fact, we can achieve linear time by recursively subdividing the graph. Without loss of generality, assume the graph is directed, and that each node has at most two incoming and two outgoing edges. We call a region atomic if it contains only one edge $uv$. A nonatomic region will have as children subregions that are contained within it.
+We have improved upon Dijkstra's algorithm, but there is still room to do better. A recursive subdivision $\bar{r} = (r_0, \ldots, r_h)$ of a graph is a division in which the regions are subdivided recursively up to edges. A region at level $i$ is sub-divided into regions of size $r_{i-1}$. The regions at level $0$ are called atomic and contain only one edge $uv$.
 
 For each region $R$, we maintain a priority queue $Q(R)$ that stores the subregions of $R$ if $R$ is nonatomic, or the single arc $uv$ is $R$ is atomic. The algorithm ensures that for every region $R$, the minimum element of $Q(R)$ is the minimum label $d(v)$ over all edges $vw$ in $R$ that remain to be processed.
-
 
 \begin{algorithm}
   \refstepcounter{algorithm}
@@ -380,8 +380,6 @@ For each region $R$, we maintain a priority queue $Q(R)$ that stores the subregi
     \EndWhile
   \end{algorithmic}
 \end{algorithm}
-
-The algorithm repeatedly calls two subprocedures \textsc{Process} and \textsc{Update} to process individual regions and update parent regions. Unlike Dijkstra's algorithm, the work we do in a region is only speculative. Often we cannot afford to fully process a region, and executions are stopped after a fixed number of steps.
 
 \begin{algorithm}[!h]
   \label{alg:process}
@@ -417,7 +415,7 @@ The algorithm repeatedly calls two subprocedures \textsc{Process} and \textsc{Up
   \end{algorithmic}
 \end{algorithm}
 
-By playing around with the number of levels, number of nodes per region per level, and the $\alpha_i$, we can achieve linear time. To give an intuition, we present here a $O(n \log \log n)$ algorithm and briefly comment on how to change it to get rid of the $\log \log n$ factor.
+The algorithm repeatedly calls two subprocedures \textsc{Process} and \textsc{Update} to process individual regions and update parent regions. Unlike Dijkstra's algorithm, the work we do in a region is only speculative. Often we cannot afford to fully process a region, and executions are stopped after a fixed number of steps. Specifically, at level $i$, we perform $\alpha_i$ steps of Dijkstra's algorithm, where the $\alpha_i$ are parameters that will dictate the running time of the algorithm.
 
 \subsubsection{Correctness}
 \label{sec:correctness}
@@ -484,9 +482,7 @@ When the algorithm terminates, the minimum key of the priority queue associated 
 \subsubsection{Analysis}
 \label{sec:analysis}
 
-A recursive subdivision of a graph induces a hierarchy of levels. We will say that edges are at level $0$, and levels increase up to the region containing the entire graph.
-
-We show that dividing the graph into $O(n/\log^4n)$ regions of size $O(\log^4 n)$ with boundaries of size $O(\log^2 n)$ and setting $\alpha_1 = \log n$ and $\alpha_2 = 1$ yields an $O(n \log \log n)$ single source shortest paths algorithm. Note that the division is simply an $r$-division with $r=\log^4 n$. There are $3$ levels in this division: the edges, the regions of the $r$-division, and the whole graph.
+We show that using  dividing the graph into $O(n/\log^4n)$ regions of size $O(\log^4 n)$ with boundaries of size $O(\log^2 n)$ and setting $\alpha_0 = 0, \alpha_1 = \log n$ and $\alpha_2 = 1$ yields an $O(n \log \log n)$ single source shortest paths algorithm. Note that this division is simply an $r$-division with $r=\log^4 n$, and thus $r_0=1, r_1 = \log^4 n$, and $r_2 = n$.
 
 We restate the algorithm:
 \begin{enumerate}
@@ -494,7 +490,7 @@ We restate the algorithm:
 \item Repeat $\log n$ times: Select the lowest labeled node $v$ in the current region that has active outgoing edges in the region. Relax and deactive its outgoing edges $vw$ in that region. For each of the other endpoints $w$ of these edges, if relaxing the edge $vw$ resulted in decreasing the label of $w$, then activate the outgoing edges of $w$.
 \end{enumerate}
 
-The majority of the time is spent in invocations of \textsc{Process}. We say that an invocation of \textsc{Process} on region $R$ is \emph{truncated} if $Q(R).minKey()$ is infinity at the end of the invocation. All level $0$ invocations are truncated. The crux of the analysis relies on the following \emph{charging invariant} (the proof of which is in appendix A):
+The majority of the time is spent in invocations of \textsc{Process}. We say that an invocation of \textsc{Process} on region $R$ is \emph{truncated} if $Q(R).minKey()$ is infinity at the end of the invocation. All level $0$ invocations are truncated. The crux of the analysis relies on the following \emph{charging invariant}:
 
 \noindent\makebox[\textwidth][c]{%
 \begin{minipage}{.8\textwidth}
@@ -555,9 +551,7 @@ The information is summarized in table~\ref{tab:process}.
 \end{tabular}
 \end{table*}
 
-We have bounded the time for \textsc{Process}, but we still have to worry about the calls to \textsc{Update}. Fortunately, an $O(n \log \log n)$ bound for \textsc{Update} follows quickly.  We can assume that the graph has in- and out-degree at most $2$. First note that each call to \textsc{Update} starts at level $0$, so there are $O(n)$ calls to worry about. If the call stops on or before level $1$, then all we need to do is update a key in a queue of size $\log^4 n$. The total time for all calls to \textsc{Update} that stop at or before level $1$ is $O(n \log \log n)$.
-
-Otherwise, recall that $O(n/\log n)$ level $0$ invocations of \textsc{Process} are charged to each level $1$ or level $2$ region. Their calls to \textsc{Update} take $O((n/\log n) \log n) = O(n)$ time. The remaining cases are level $0$ invocations of \textsc{Process} that are charged to themselves. We must show that at most $O(n/\log n)$ of these invocations result in a call to \textsc{Update} that reaches the top level. We associate each level $0$ invocation of \textsc{Process} that is charged to region $R(uv)$ with the node $v$ whose label is being updated. Recall that $v$ has in-degree at most $2$, so there are only $2$ level $0$ invocations associated with a given node. If we reach the top level, it must be the case that $v$ was a boundary node for a level $1$ region for otherwise it could not have been the minimum key. Since there are only $O(n/\log^2 n)$ boundary nodes on level $1$, the total time needed for calls to \textsc{Update} in this case is $O((n/\log^2 n) \log n) = O(n/\log n)$.
+The analysis bounds invocations of \textsc{Process}, but not those of \textsc{Update}. However, the analysis for \textsc{Update} follows the same direction and also yields a $O(n \log \log n)$ time bound.
 
 \subsubsection{Linear time}
 \label{sec:linear-time}
@@ -572,11 +566,27 @@ with $\alpha_0 = 0$, and $\alpha_{h(G)} = 1$.
 
 To achieve linear time, we define the $r_i$ inductively by $r_0 = 1$, and $r_{i+1} = 16^{r_i^{1/6}}$. This defines a division into roughly $\log^{*} n$ levels. The algorithm is as algorithm~\ref{alg:linear} with \textsc{Process} and \textsc{Update} as given there.
 
-The correctness proof did not rely on the $\alpha_i$ or $r_i$ and follows as in section~\ref{sec:correctness}. Using a very similar argument as in section~\ref{sec:analysis}, it is possible to show that the linear time bound holds for this choice of parameters.
+The correctness proof did not rely on the $\alpha_i$ or $r_i$ and follows as in section~\ref{sec:correctness}. Using a very similar argument as in section~\ref{sec:analysis}, it is possible to show that the linear time bound holds for this choice of parameters, though the recursion is more involved.
 
 \section{Single source shortest paths with arbitrary edge weights}
 \label{sec:arbitr-edge-weights}
 
+\textcolor{red}{This section is under construction. Our apologies.}
+
+\subsection{Motivation}
+\label{sec:arbitr-motiv}
+
+Given the separator theorem of Lipton and Tarjan~\cite{lipton1979separator}, divide-and-conquer algorithms on planar graphs seem appealing: the fact that each part has many vertices adds only a factor of $\log n$ to the runtime of what we have to do in order to combine the two parts and furthermore the two parts have very little in common vertices, so now even slow algorithms as Bellman-Ford seem appealing. Actually, this is what we will do, although in order to get tighter bounds we will need an improved variant of Bellman-Ford, based on the special structure of planar graphs.
+
+\subsection{Intuitive description}
+\label{sec:intu-descr}
+
+
+Let us now go more in depth into how the algorithms work, while still not touching the details, which we will touch in the next section. First of all, note that the vertex $s$ from which we want to find the distances might not be a boundary vertex, which will couse problems when we try to recurse. We can easily solve this, as if we have the distances from any other vertex, we can dene a price function which will make every edge positive and enable us to apply Dijkstra. We may therefore choose a boundary vertex. We now need to "glue" these the smallest distances we have. Note that we may glue only along the boundary cycle, i.e. any shortest path from $x$ to $y$ will have the following form: an inital and last segment, from x to the boundary cycle and from a vertex from the boundary cycle to $y$, and then a couple of other paths between vertices on the boundary cycle, paths which stay within one of the two parts. Therefore, it seems natural to try to compute the distances between vertices on the boundary (as they form the ``bulk'' of the $x-y$ path).
+
+We already have the distances between two vertices on the boundary within each of the two parts (for proving the first part an algorithm of Klein that does exactly this is used). In order to combine these we will use Bellman-Ford, although a little modified. Note that for a convex quadrangle $ABCD$ we have that $AC + BD \geq AB + CD$. This seems trivial, but note that the lengths can take the value of any distance function, so also of the shortest path! This means that if we order the vertices on the boundary cyclically, there is special structure to this distance function. We will make this formal by using Monge matrices (note the equivalence of $AB + CD \leq AC + BD$ and $a_{ij} + a_{kl} \geq a_{il} + a_{kj}$ if $i \leq k$ and $j \leq l$). By what we said earlier, we only need to find the distances from a vertex on boundary to all the other vertces, and we can yet again, using the distances between boundary vertices, do this by using a price function and Dijkstra. This is how the $O(n \log^2 n)$ algorithm works.
+
+For the $\mathcal{O}(n \log^2 n/ \log \log n)$ algorithm, we need to make certain improvements. First of all, it is obvious that if we try using divide-and-conquer with only two subproblems we are most certain to fail, as there is no easy way of improving the steps in the previous algorithm to take less than $O(n \log n)$. For this, we will use the separator theorem of Fakcharoenphol and Rao~\cite{fakcharoenphol2001planar}. This, however, brings about problems we didn’t have to face before, the most complicated of which are the holes. Note that, however, the separator theorem assures many useful properties, one of which is the constant number of holes. This might enable using algorithms for every pair of holes within a region (where region is a part of the division). Also, there aren’t many boundary nodes per region.
 
 \bibliographystyle{plain}
 \bibliography{project}
