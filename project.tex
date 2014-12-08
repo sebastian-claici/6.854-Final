@@ -39,9 +39,9 @@
 % Other
 \newcommand{\ra}[1]{\renewcommand{\arraystretch}{#1}}
 
-\title{All Aboard the Pony Express:\\ Shortest Paths in Planar Graphs}
+\title{Single-Source Shortest Paths in Planar Graphs}
 \author{Stuart Baker, \"{O}mer Cerraho\u{g}lu, Sebastian Claici}
-\date{\today}
+\date{}
 
 \begin{document}
 \maketitle
@@ -464,9 +464,12 @@ To get our total time bounds, we multiply the time per invocation with the numbe
   \text{Total} &= O(\log n) \cdot O(n/\log n) + O(\log n \log \log n) \cdot O(n/ \log n) + O(1) \cdot O(n) \\
                &= O(n \log \log n)
 \end{align*}
+The information is summarized in table~\ref{tab:process}.
 
 
 \begin{table*}[!h]\centering
+\caption{Time required for \textsc{Process} calls.}
+\label{tab:process}
 \ra{1.3}
 \begin{tabular}{@{}llllll@{}} \toprule
   Level & Calls & Time per invocation & No.\ $(R,v)$ pairs & No.\ invocations & Total time\\ \midrule
@@ -477,6 +480,15 @@ To get our total time bounds, we multiply the time per invocation with the numbe
   \bottomrule
 \end{tabular}
 \end{table*}
+
+We have bounded the time for \textsc{Process}, but we still have to worry about the calls to \textsc{Update}. Fortunately, an $O(n \log \log n)$ bound for \textsc{Update} follows quickly.  We can assume that the graph has in- and out-degree at most $2$. First note that each call to \textsc{Update} starts at level $0$, so there are $O(n)$ calls to worry about. If the call stops on or before level $1$, then all we need to do is update a key in a queue of size $\log^4 n$. The total time for all calls to \textsc{Update} that stop at or before level $1$ is $O(n \log \log n)$.
+
+Otherwise, recall that $O(n/\log n)$ level $0$ invocations of \textsc{Process} are charged to each level $1$ or level $2$ region. Their calls to \textsc{Update} take $O((n/\log n) \log n) = O(n)$ time. The remaining cases are level $0$ invocations of \textsc{Process} that are charged to themselves. We must show that at most $O(n/\log n)$ of these invocations result in a call to \textsc{Update} that reaches the top level. We associate each level $0$ invocation of \textsc{Process} that is charged to region $R(uv)$ with the node $v$ whose label is being updated. Recall that $v$ has in-degree at most $2$, so there are only $2$ level $0$ invocations associated with a given node. If we reach the top level, it must be the case that $v$ was a boundary node for a level $1$ region for otherwise it could not have been the minimum key. Since there are only $O(n/\log^2 n)$ boundary nodes on level $1$, the total time needed for calls to \textsc{Update} in this case is $O((n/\log^2 n) \log n) = O(n/\log n)$.
+
+\subsubsection{Linear time}
+\label{sec:linear-time}
+
+
 
 \section{Single source shortest paths with arbitrary edge weights}
 \label{sec:arbitr-edge-weights}
