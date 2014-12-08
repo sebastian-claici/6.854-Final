@@ -55,7 +55,11 @@
 
 Finding shortest paths in graphs is one of the oldest combinatorial optimization problems. At least in the sense of path finding, there are references dating back to the early 1800's (reference). The standard algorithm for single-source shortest paths on a graph with no negative edge weights is Dijkstra's algorithm (reference).
 
-While for general graphs the problem has been effectively solved decades ago, for the special case where the graph is planar has seen a number of surprising developments in recent years.
+While for general graphs the problem has been effectively solved decades ago, for the special case where the graph is planar has seen a number of surprising developments in recent years. We enumerate these here, and detail them in later sections.
+
+For directed graphs where the edge weights are non-negative, the first improvement over $O(n\log n)$ came from Federickson who gave a $O(n \sqrt{\log n}$) bound~\cite{federickson1987fast}. This was improved nearly a decade later by Henzinger et al.\ to linear time~\cite{henzinger1997faster}. We remark that for general \emph{undirected} graphs with positive edge weights, there are known linear time algorithms for single-source shortest paths in the RAM model~\cite{thorup1999undirected}.
+
+For directed graphs with arbitrary edge weights, there have been recent developments that greatly improve upon a naive $O(n^2)$ Bellman-Ford. In 2010, Klein, Mozes and Weimann gave a $O(n \log^2 n)$ algorithm~\cite{klein2010shortest}, which was improved to $O(n \log^2 n / \log \log n)$ shortly thereafter~\cite{mozes2010shortest}. Both algorithms make use of a $O(n \log n)$ multiple-source shortest paths algorithm due to Klein~\cite{klein2005multiple}.
 
 \section{Background}
 \label{sec:background}
@@ -76,7 +80,7 @@ An interesting and relevant proof of the Jordan curve theorem that uses the non-
   A graph is planar if and only if it contains neither a complete graph on five vertices, nor a complete bipartite graph on two sets of three vertices as a generalized subgraph.
 \end{theorem}
 
-The Kuratowski subgraphs are shown in figure~\ref{fig:kuratowski}.\\
+An in-depth discussion of Kuratowski's theorem and a short proof are found in~\cite{thomassen1981kuratowski}. The Kuratowski subgraphs are shown in figure~\ref{fig:kuratowski}.\\
 
 \begin{figure}[!t]
   \centering
@@ -127,6 +131,10 @@ Finally, specifically for shortest paths algorithms, we use the fact that every 
 
 \section{Planar Graph Separators}
 \label{sec:graph-sep}
+    % TODO Miller's Algorithm
+    % TODO Last point in Tarjan's algorithm
+    % TODO Naming on r-subdivision
+    % TODO Recursive subdivision
 
     \subsection{Overview}
     \label{sec:graph-sep-overview}
