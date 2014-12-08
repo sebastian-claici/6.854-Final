@@ -586,6 +586,12 @@ We already have the distances between two vertices on the boundary within each o
 
 For the $\mathcal{O}(n \log^2 n/ \log \log n)$ algorithm, we need to make certain improvements. First of all, it is obvious that if we try using divide-and-conquer with only two subproblems we are most certain to fail, as there is no easy way of improving the steps in the previous algorithm to take less than $O(n \log n)$. For this, we will use the separator theorem of Fakcharoenphol and Rao~\cite{fakcharoenphol2001planar}. This, however, brings about problems we didn’t have to face before, the most complicated of which are the holes. Note that, however, the separator theorem assures many useful properties, one of which is the constant number of holes. This might enable using algorithms for every pair of holes within a region (where region is a part of the division). Also, there aren’t many boundary nodes per region.
 
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+From integrated circuit design to network design to path-planning in robotics, planar graphs frequently occur in day-to-day life. By understanding the unique properties of planar graphs and how to exploit their structure, it is possible to address many of the common issues prevalent in many domains. The fundamental step in many planar graph algorithms is to find a smaller subset of the problem to solve first for a divide-and-conquer approach. Planar graph separators enable complex problems, such as shortest path, to be solved in an efficient manner. Expanding to application, shortest path represents one of the many canonical algorithms that can be applied to planar graphs. Like in their non-planar counterparts, shortest path can be used to address many real-world problems such as robotic navigation. Adding in negative edge costs allows for richer and more complex problems, such as shipping commodities through many different channels where profit effects may result in negative costs. In this paper, we have presented the intuition behind algorithms for planar graph separators, non-negative single-source shortest path, and negative weight shortest path in planar graphs. We hope we have shown more clearly that restricting ourselves to certain classes of graphs can lead to beautiful, yet simple, solutions to many common problems.
+
 \bibliographystyle{plain}
 \bibliography{project}
 \end{document}
