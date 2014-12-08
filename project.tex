@@ -216,7 +216,7 @@ This step can be performed in $\mathcal{O}(n)$.
 
         \item Form a condensed graph $G^{'}$ by deleting  all edges in $L_{\geq i_+}$, and contracting all edges in $L_{\leq i_-}$ into a super vertex $v$ that is connected to all vertices in $L_{i_- + 1}$.
 
-        \item From the condensed graph $G^{'}$, create a fundamental cycle separator
+        \item From the condensed graph $G^{'}$, create a fundamental cycle separator $S$
         \begin{itemize}
             \item Build a breadth-first tree from $v$. This tree will have depth $|i_+ - i_-| \leq \sqrt{n}$
 
@@ -228,6 +228,7 @@ This step can be performed in $\mathcal{O}(n)$.
         \item If the weight of the ``inside'' is larger than $2/3$, fix the cycle by changing $uv$ with another non-tree edge. We can ensure that the weight of the ``inside'' will only decrease during this process. Repeat this step until a suitable cycle separator has been found.
 
         \item Using this separator, return $A$ and $B$ as some combination of int$(C)$, ext$(C)$, $L_{< i_-}$, and $L_{> i_+}$. $S$ can be returned as a combination of $L_{i_-}$, $L_{i_+}$, and $C$.
+
     \end{enumerate}
 
     \subsection{Miller's Algorithm}
@@ -240,11 +241,45 @@ This step can be performed in $\mathcal{O}(n)$.
       \item Find a separator contained in $H$
     \end{enumerate}
 
-    Given that we now have the subgraph $H$ from the p[arent graph $G$, we now have to find the separator within $H$.
-    \begin{theorem}
-      If $G_\phi$is a 2-connected embedded planar graph with spanning tree $T$, then there exists a simple cycle weight separator of size at most $d + S$ with no face weight $> \frac{2}{3}$. Where $d$ is the diameter fo $T$, and $S$ is the maximum face size.
-    \end{theorem}
+    % Given that we now have the subgraph $H$ with radius $\sqrt{d \cdot n}$ from the parent graph $G$, we now have to find the separator within $H$.
+    % \begin{theorem}
+    %   If $G_\phi$is a 2-connected embedded planar graph with spanning tree $T$, then there exists a simple cycle weight separator of size at most $d + S$ with no face weight $> \frac{2}{3}$. Where $d$ is the diameter of $T$, and $S$ is the maximum face size.
+    % \end{theorem}
 
+    % We can start with the spanning tree $T$ of the graph $G$. If we say that $e$ is any non-tree edge, then $C_e$ is the induced simple cycle in the spanning tree $T$. Furthermore, let $F$ be the face common to $e$ on the interior of $C_e$. We can expand this by saying that $C_i$ is the cycle induced by $e_i$ such that $int(C_i)$ is contained within $int(C_e)$.
+
+    % \begin{lemma}
+    %   Either there exists an $i$ such that $F + C_i$ us a weighted separator, or there exists an $i$ such that $\#(int(F + C_i)) > \frac{2}{3}$ and for all $j$, such that $\overline{C}_j$ is a child of $\overline{C}_i$, $\#(ext(F + C_j)) > \frac{2}{3}$.
+    % \end{lemma}
+
+    Shrinking the diameter of the graph consists of finding the heaviest child in a breadth-first search tree and collapsing all of the face of the graph outside of a certain size bound from that child.
+    \begin{enumerate}
+      \item From the original graph $G$, construct its primal $G^{'}$.
+
+      \item Build a breadth-first search tree starting from some root $r$.
+
+      \item Find the heaviest subtree in the BFS tree by following the heaviest child until you reach a cycle $C_0$ with weight $> \frac{1}{2}$, but where all enclosed cycles have weight $< \frac{1}{2}$.
+
+      \item Find the level $i_-$ higher in the BFS tree than $i_0$ that has a boundary size of $\mathcal{\sqrt{n}}$. From this level, choose a cycle $C_r$ that encompases $C_0$.
+
+      \item Find the level $i_+$ lower in the BFS tree than $i_0$ that has  a boundary size of $< \mathcal{\sqrt{n}}$.
+
+      \item Find the lower-diameter primal graph $G^{'}$.
+      \begin{itemize}
+        \item Merge all of the faced enclosed by $C$ for all of the cycles $C$ in $L_+$ enclosed by $C_0$.
+
+        \item All of the faces not enclosed by $C_r$ can be merged together.
+
+        \item $G^{'}$ now has a diameter of$\mathcal{O}(\sqrt{n}$.
+      \end{itemize}
+    \end{enumerate}
+
+    After diameter reduction, the next step is to find the separator within the subgraph.
+    \begin{enumerate}
+      \item Compute the spanning tree $T^{'}$ of the graph $G^{'}$.
+
+      \item Apply the fundamental cycle separator lemma to $G^{'}$ with $T^{'}$ to break the graph apart.
+    \end{enumerate}
 
     \subsection{r-Subdivision}
     \label{sec:graph-sep-rsub}
