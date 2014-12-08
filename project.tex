@@ -249,12 +249,13 @@ This step can be performed in $\mathcal{O}(n)$.
     \subsection{r-Subdivision}
     \label{sec:graph-sep-rsub}
 
-    The graph segmentation algorithms presented above can be used to recursively break a graph apart for a divide-and-conquer approach to solving problems. Specifically, the graph can be divided into $\Theta \left (\frac{n}{r} \right )$ regions, each of which have $\mathcal{O}(r)$ vertices and a total of $\mathcal{O} \left (\frac{n}{\sqrt{r}} \right )$ boundary vertices. Frederickson takes this definition a step further and defines a \textit{suitable} r-division of a planar graph as the r-division that satisfies two characteristics~\cite{federickson1987fast}:
+    A division into $2$ regions is not useful for a divide-and-conquer approach. Fortunately, we can achieve an $r$-segmentation of the graph into $\Theta \left (\frac{n}{r} \right )$ regions, each with $\mathcal{O}(r)$ vertices, and separated by $\mathcal{O} \left (\frac{n}{\sqrt{r}} \right )$ boundary vertices. Federickson takes this definition a step further and defines a \textit{suitable} r-division of a planar graph as the r-division that satisfies two characteristics~\cite{federickson1987fast}:
     \begin{enumerate}
         \item Each boundary vertex is contained in at most three regions
 
         \item Any region that is not connected consists of connected components, all of which share boundary vertices with exactly the same set of either one or two connected regions.
     \end{enumerate}
+A suitable $r$-division is shown in figure~\ref{fig:rsep}.
 
     \begin{figure}[!htb]
       \centering
@@ -265,24 +266,19 @@ This step can be performed in $\mathcal{O}(n)$.
 
     Starting with the initial graph $G$, all of the vertices are in the interior region. A separator algorithm can then be applied to the graph with all of the vertex weights set to $\frac{1}{n}$. This will produce three sets: $A$, $B$, and $C$. From these two sets, we can infer two regions that have the vertex sets $A_1 \subseteq A \cup C$ and $A_2 \subseteq B \cup C$. These two vertex sets will have sizes $\alpha n + \mathcal{O}\sqrt{n}$ and $(1 - \alpha) n + \mathcal{O}\sqrt{n}$ with $\frac{1}{3} \leq \alpha \leq \frac{2}{3}$. To continue the process, the separator algorithm can be recursively applied to any region that has more than $r$ vertices. The total runtime of this algorithm is $\mathcal{O} \left (n \log \left (\frac{n}{r} \right ) \right )$.
 
-    However, to ensure that the two qualities that Miller enumerated hold, additional steps must be made. After applying the planar separator algorithm, there are three sets of vertices: $A$, $B$, and $C$. If we say that $C^{'}$ is the set of vertices in $C$ not adjacent to any vertex in $A \cup B$, the we can define $C^{''} = C - C^{'}$. Next, we need to identify the connected components $A_1, A_3, \ldots, A_q$ in $A \cup B \cup C^{'}$. Using this information, we can remove any vertex $v$ from $C^{''}$ and insert it into $A_i$ if that vertex is adjacent to a vertex in $A_i$, but not adjacent to a vertex in $A_j$ for $i \neq j$. This will ensure that a boundary vertex will be in at most three subgraphs. However, this does not ensure that there are at most $\Theta \left ( \frac{n}{r} \right )$ connected subgraphs. To ensure that there are no more than $\Theta \left ( \frac{n}{r} \right )$ connected subgraphs, we can apply a greedy approach. Sweep through the set of connected regions, join together any two neighboring regions that each have less than $\frac{r}{2}$ vertices. Furthermore, we have to ensure that all of the subregions do not possess more than$c \sqrt{r}$ boundary vertices. To solve this problem, we can run through the connected subgraphs and apply the separator technique to any subgraph that has more than $c \sqrt{r}$ boundary vertices. This does impose an additional requirement when merging small subgraphs that the number of boundary vertices in each group can be at most $\frac{c}{2} \sqrt{2}$.
+\textcolor{red}{TODO: $r$-separators can be found in $O(n\log r)$ time. Detail this algorithm. Provide intuition on how to go from that to $O(n)$ time.}
 
-    \subsubsection{Recursive Subdivision}
-    \label{sec:graph-sep-rsub-recursive}
-
-    % TODO See if this is good enough...
-
-    Planar graphs can be recursively decomposed into smaller planar graphs. This allows the planar separators to be combined into a planar separator hierarchy which can be stored in a variety of data structures. One example is using a binary search trees to store the vertices within the planar graph in a hierarchical manner. Using this technique, it is possible to efficiently search within the planar graph.
-
-\section{Single source shortest paths with nonnegative edge weights}
+\section{Single source shortest paths with non-negative edge weights}
 \label{sec:nonn-edge-weights}
+
+The fastest algorithm for single-source shortest paths in general graphs with non-negative edge weights is Dijkstra's algorithm which runs in time $O(m + n\log n)$. Planar graphs are sparse, so simply applying Dijkstra's algorithm on a planar graph already gives you an $O(n \log n)$ algorithm.
+
+We can do much better by using the ideas developed in section~\ref{sec:graph-sep}.
 
 \subsection{Simple algorithm}
 \label{sec:simple-algorithm}
 
-For a planar graph with nonnegative edge weights, Dijkstra's algorithm runs in $O(n \log n)$ as $m \leq 3n - 6$. It is possible to improve this to $O(n)$. To get there, recall that and $r$-division of a planar graph is a partition of the graph into $\Theta(n/r)$ regions of size $O(r)$ with boundary size $O(\sqrt{r})$. An $r$-division of a planar graph can be computed in linear time.
-
-A simple $O(n\sqrt{\log n \log \log n})$ emerges quite beautifully just from the $r$-division if we set $r = \frac{\log n}{\log \log n}$. The algorithm follows a divide-and-conquer approach in which each region is processed first, followed by a clean-up phase where the results are merged.
+A simple $O(n\sqrt{\log n \log \log n})$ emerges beautifully just from an $r$-division if we set $r = \frac{\log n}{\log \log n}$.
 
 \begin{algorithm}[!htb]
   \refstepcounter{algorithm}
