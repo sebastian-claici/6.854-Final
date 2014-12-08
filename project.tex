@@ -27,7 +27,7 @@
 % TikZ
 \usepackage{tikz}
 
-\usetikzlibrary{arrows,topaths,calc}
+\usetikzlibrary{arrows,topaths,calc,shapes,through,intersections}
 
 \tikzstyle{vertex}=[circle,fill=black,minimum size=10pt,inner sep=0pt]
 \tikzstyle{dual}=[draw,circle,minimum size=10pt,inner sep=0pt]
@@ -68,7 +68,7 @@ This paper is organized as follows: in section~\ref{sec:background} we provide b
 \section{Background}
 \label{sec:background}
 
-Later on, we make use of several properties of planar graphs in later sections. We provide background on the required theorems here.\\
+We assume the reader is familiar with basic graph theory. Planar graphs are graphs that can embedded in Euclidean space such that no two edges cross each other (a more useful characterization is given shortly). Every embedding of a planar graph delineates several faces, one of which is unbounded and represents the ``outside'' of the graph; we call this face the infinite face, and denote it by $f_{\infty}$. The following theorems are used implicitly or explicitly throughout the paper.\\
 
 \begin{theorem}[Jordan curve theorem]
   Let $C$ be any closed curve in the plane. Removal of $C$ divides the plane into exactly two connected regions, the ``inside'' and the ``outside'' of $C$.
@@ -86,10 +86,10 @@ An interesting proof of the Jordan curve theorem that uses the non-planarity of 
 
 An in-depth discussion of Kuratowski's theorem and a short proof are found in~\cite{thomassen1981kuratowski}. The Kuratowski subgraphs are shown in figure~\ref{fig:kuratowski}.\\
 
-\begin{figure}[!t]
+\begin{figure}[!htb]
   \centering
   \subfloat[]{
-    \begin{tikzpicture}[scale=0.3]
+    \begin{tikzpicture}[scale=0.2]
       \foreach \ang/\id in {18/1,90/2,162/3,234/4,306/5}{
         \node[vertex] (\id) at (\ang:5) {};
       }
@@ -104,7 +104,7 @@ An in-depth discussion of Kuratowski's theorem and a short proof are found in~\c
     \end{tikzpicture}
   }\hfil
   \subfloat[]{
-    \begin{tikzpicture}[scale=0.3]
+    \begin{tikzpicture}[scale=0.2]
       \node at (0,-1) {};
       \foreach \x/\id in {-4/1,0/2,4/3}{
         \node[vertex] (\id) at (\x,0) {};
@@ -126,10 +126,40 @@ An in-depth discussion of Kuratowski's theorem and a short proof are found in~\c
 \end{figure}
 
 \begin{theorem}
-  Every node $v$ of a planar graph can be embedded on the boundary of the infinite face $f_{\infty}$.
+  Every planar graph can be embedded without edge crossings on a sphere. As a corollary, every node $v$ of a planar graph can be embedded on the boundary of the infinite face $f_{\infty}$.
 \end{theorem}
 
-Embedding nodes on the outer boundary is accomplished through stereographic projections (figure placeholder).
+A stereographic projection can be used to embed nodes on a plane onto a sphere without edge crossings (see figure~\ref{fig:stereo}).
+
+\begin{figure}[!htb]
+  \centering
+  \begin{tikzpicture}[scale=0.8]
+    \draw (-4,0) -- (4,0);
+
+    \coordinate (aux) at (0,0);
+    \coordinate (z) at (0,4);
+    \coordinate (a) at (2,0);
+    \coordinate (b) at (0,2);
+    \coordinate (d) at (-3.5,0);
+
+    \node (A) [label=270:$a$] at (a) {$\bullet$};
+    \node (D) [label=270:$b$] at (d) {$\bullet$};
+    \node (Z) at (z) {$\bullet$};
+
+    \node (circ) at (b) [draw,circle through=(aux)] {};
+    \coordinate (az) at (intersection 1 of circ and z--a);
+    \coordinate (dz) at (intersection 1 of circ and z--d);
+
+    \draw (a) -- (z);
+    \draw (d) -- (z);
+
+    \node (xx) [label=90:$a'$] at (az) {\color{red}$\bullet$};
+    \node (yy) [label=100:$b'$] at (dz) {\color{red}$\bullet$};
+
+  \end{tikzpicture}
+  \caption{Stereographic projection of two points on a line onto a circle.}
+  \label{fig:stereo}
+\end{figure}
 
 Finally, specifically for shortest paths algorithms, we use the fact that every planar graph can be transformed by adding $O(n)$ vertices and edges into another planar graph such that every node has indegree and outdegree at most $2$.
 
@@ -150,7 +180,7 @@ Finally, specifically for shortest paths algorithms, we use the fact that every 
     \subsection{Fundamental Cycle Separators}
     \label{sec:graph-sep-fund-cycle-sep}
 
-    On method for dividing a planar graph into smaller set was developed by Lipton and Tarhan called the fundamental cycle separator~\cite{lipton1979separator}. Lipton and Tarjan demonstrated that for any planar graph $G = (V,E)$ on $n = |V|$ vertices, and for any weight function $w: V \rightarrow \mathbb{R}^+$, it is possible to partition the nodes in the graph into three sections $A, B, C, \subseteq V$ with the following qualities.
+    On method for dividing a planar graph into smaller set was developed by Lipton and Tarhan called the fundamental cycle separator~\cite{lipton1979separator}. Lipton and Tarjan showed that for any planar graph $G = (V,E)$ on $n = |V|$ vertices, and for any weight function $w: V \rightarrow \mathbb{R}^+$, it is possible to partition the nodes in the graph into three sections $A, B, C, \subseteq V$ with the following qualities.
     \begin{itemize}
         \item $w(A), w(B) \leq \alpha \cdot w(V)$ for some $\alpha \in (0,1)$
 
@@ -202,7 +232,7 @@ Finally, specifically for shortest paths algorithms, we use the fact that every 
     \subsection{Miller's Algorithm}
     \label{sec:graph-sep-miller}
 
-    Miller showed an alternative method for separating a planar graph into two sections with a separator region. He demonstrated that every 2-connected triangulated planar graph with $n$ vertices has a simple cycle $C$ of length at most $4\sqrt{n}$~\cite{miller1984finding}. Like Lipton and Tarjan's algorithm, Miller's algorithm produces two sets, $A$ and $B$, each of which with no more than $\frac{2}{3}n$ vertices. Miller's Algorithm consists of two distinct phases:
+    Miller showed an alternative method for separating a planar graph into two sections with a separator region. He showed that every 2-connected triangulated planar graph with $n$ vertices has a simple cycle $C$ of length at most $4\sqrt{n}$~\cite{miller1984finding}. Like Lipton and Tarjan's algorithm, Miller's algorithm produces two sets, $A$ and $B$, each of which with no more than $\frac{2}{3}n$ vertices. Miller's Algorithm consists of two distinct phases:
     \begin{enumerate}
       \item Find a subgraph $H$ of the parent planar graph $G$ that has a diameter of $\sqrt{n}$ and a face size of $\sqrt{n}$
 
