@@ -56,15 +56,15 @@
 
 Finding shortest paths in graphs is one of the oldest combinatorial optimization problems. At least in the sense of path finding, there are references dating back to the late 1800's~\cite{wiener1873ueber}. The standard algorithm for single-source shortest paths on a graph with no negative edge weights is Dijkstra's algorithm~\cite{dijkstra1959note}.
 
-While for general graphs the problem has been effectively solved decades ago, for the special case where the graph is planar has seen a number of surprising developments in recent years. We enumerate these here, and detail them in later sections.
+While for general graphs the problem has been effectively solved for decades, the special case where the graph is planar has seen a number of surprising developments in recent years. We enumerate these here, and detail them in later sections.
 
 For directed graphs where the edge weights are non-negative, the first improvement over $\mathcal{O}(n\log n)$ came from Federickson who gave a $\mathcal{O}(n \sqrt{\log n}$) bound~\cite{federickson1987fast}. This was improved nearly a decade later by Henzinger et al.\ to linear time~\cite{henzinger1997faster}. We remark that for general \emph{undirected} graphs with positive edge weights, there are known linear time algorithms for single-source shortest paths in the RAM model~\cite{thorup1999undirected}.
 
-For directed graphs with arbitrary edge weights, there have been recent developments that greatly improve upon a naive $\mathcal{O}(n^2)$ Bellman-Ford. In 2010, Klein, Mozes and Weimann gave a $\mathcal{O}(n \log^2 n)$ algorithm~\cite{klein2010shortest}, which was improved to $\mathcal{O}(n \log^2 n / \log \log n)$ shortly thereafter~\cite{mozes2010shortest}. Both algorithms make use of a $\mathcal{O}(n \log n)$ multiple-source shortest paths algorithm due to Klein~\cite{klein2005multiple}.
+For directed graphs with arbitrary edge weights, recent developments greatly improve upon the naive $\mathcal{O}(n^2)$ of Bellman-Ford. In 2010, Klein, Mozes and Weimann gave a $\mathcal{O}(n \log^2 n)$ algorithm~\cite{klein2010shortest}, which was improved to $\mathcal{O}(n \log^2 n / \log \log n)$ shortly thereafter~\cite{mozes2010shortest}. Both algorithms make use of a $\mathcal{O}(n \log n)$ multiple-source shortest paths algorithm due to Klein~\cite{klein2005multiple}.
 
 The goal of this paper is to provide intuition into some of the recent developments in planar graph theory.
 
-This paper is organized as follows: in section~\ref{sec:background} we provide background on the theorems we will need later on; in section~\ref{sec:graph-sep} we detail planar graph separators which are used extensively in divide-and-conquer planar graph algorithms. In sections~\ref{sec:nonn-edge-weights}~and~\ref{sec:arbitr-edge-weights} we detail faster algorithms for single-source shortest paths in graphs with non-negative, respectively arbitrary edge weights.
+This paper is organized as follows: in section~\ref{sec:background} we provide background on the theorems we will need later on; in section~\ref{sec:graph-sep} we detail planar graph separators, which are used extensively in divide-and-conquer planar graph algorithms. In sections~\ref{sec:nonn-edge-weights}~and~\ref{sec:arbitr-edge-weights} we detail faster algorithms for single-source shortest paths in graphs with non-negative, respectively negative edge weights.
 
 \section{Background}
 \label{sec:background}
@@ -91,7 +91,7 @@ From Euler's formula, we can quickly prove a bound on the number of edges in a p
 \end{theorem}
 
 \begin{theorem}[Kuratowski's theorem]
-  A graph is planar if and only if it contains neither a complete graph on five vertices, nor a complete bipartite graph on two sets of three vertices as a generalized subgraph.
+  A graph is planar if and only if it contains neither a complete graph on five vertices, nor a complete bipartite graph on two sets of three vertices as a subgraph.
 \end{theorem}
 
 An in-depth discussion of Kuratowski's theorem and a short proof are found in~\cite{thomassen1981kuratowski}. The Kuratowski subgraphs are shown in figure~\ref{fig:kuratowski}. An immediate corollary of Kuratowski's theorem is that we can shrink edges and subgraphs while preserving planarity.\\
@@ -601,25 +601,162 @@ To achieve linear time, we define the $r_i$ inductively by $r_0 = 1$, and $r_{i+
 
 The correctness proof did not rely on the $\alpha_i$ or $r_i$ and follows from section~\ref{sec:correctness}. Using a very similar argument as in section~\ref{sec:analysis}, it is possible to show that the linear time bound holds for this choice of parameters, though the recursion is more involved.
 
-\section{Single source shortest paths with arbitrary edge weights}
+\section{Single source shortest paths with negative edge weights}
 \label{sec:arbitr-edge-weights}
 
-\textcolor{red}{This section is under construction. Our apologies.}
+\subsection{Overview}
+\label{sec: overview}
 
-\subsection{Motivation}
-\label{sec:arbitr-motiv}
+Given the separator theorem of Tarjan, divide-and-conquer algorithms on planar graphs might work: the fact that each part has many vertices adds only a factor of $\log(n)$ to the runtime of what we have to do in order to combine the two parts and furthermore the two parts have very little in common ($\mathcal{O}(\sqrt{n})$) vertices, so now even slow algorithms as Bellman-Ford seem appealing. Actually, this is what we will do, although in order to get tighter bounds we will need an improved variant of Bellman-Ford, based on the special structure of planar graphs.
 
-Given the separator theorem of Lipton and Tarjan~\cite{lipton1979separator}, divide-and-conquer algorithms on planar graphs seem appealing: the fact that each part has many vertices adds only a factor of $\log n$ to the runtime of what we have to do in order to combine the two parts and furthermore the two parts have very little in common vertices, so now even slow algorithms as Bellman-Ford seem appealing. Actually, this is what we will do, although in order to get tighter bounds we will need an improved variant of Bellman-Ford, based on the special structure of planar graphs.
+Let us now go more in depth into how the algorithms work, while still not touching the details, which we will touch in the next section. First of all, note that the vertex $s$ from which we want to find the distances might not be a boundary vertex, which will couse problems when we try to recurse. We can easily solve this, as if we have the distances from any other vertex, we can define a price function which will make every edge positive and enable us to apply Dijkstra. We may therefore choose a boundary vertex. We now need to "glue" these the smallest distances we have. Note that we may glue only along the boundary cycle, i.e. any shortest path from $x$ to $y$ will have the following form: an inital and last segment, from $x$ to the boundary cycle and from a vertex from the boundary cycle to $y$, and then a couple of other paths between vertices on the boundary cycle, paths which stay within one of the two parts. Therefore, it seems natural to try to compute the distances between vertices on the boundary (as they form the "bulk" of the $x-y$ path). Note that
+for this we need the distance within one region for any two vertices on the boundary, but we can do this using the distance function we computed in the recursion step by using Klein's algorithm. Now, in order to combine these pieces we will use Bellman-Ford, although a modified to get the proper time bounds. Note that for a convex quadrilateral $ABCD$ we have that $AC+BD\geq AB+CD$. This seems trivial, but note that  the lengths can take the value of any distance function, so also of the shortest path! This means that if we order the vertices on the boundary cyclically, there is special structure to this distance function. We will make this formal by using Monge matrices (note the equivalence of $AB+CD\leq AC+BD$ and $a_{ij}+a{kl}\geq a_{il}+a_{kj}$ if $i\leq k$ and $j\leq l$). By what we said earlier, we only need to find the distances from a vertex on boundary to  all the other vertces, and we can yet again, using the distances between boundary vertices, do this by using a price function and Dijkstra. This is how the $\mathcal{O}(n\log^2(n))$ algorithm works.
 
-\subsection{Intuitive description}
-\label{sec:intu-descr}
+For the $\mathcal{O}(n\log^2(n)/\log(\log(n))$ algorithm, we need to make certain improvements. First of all, it is obvious that if we try using divide-and-conquer with only two subproblems we are most certain to fail, as there is no easy way of improving the steps in the previous algorithm to take less than $\mathcal{O}(n\log(n))$. For this, we will use the separator theorem of Fakcharoenphol and Rao. This, however, brings about problems we didn't have to face before, the most complicated of which are the holes. Note that, however, the separator theorem assures many useful properties, one of which is the constant number of holes. This might enable using algorithms for every pair of holes within a region (where region is a part of the division).
 
+\subsection{The algorithm and Correctness}
+\label{sec: details and overview}
 
-Let us now go more in depth into how the algorithms work, while still not touching the details, which we will touch in the next section. First of all, note that the vertex $s$ from which we want to find the distances might not be a boundary vertex, which will couse problems when we try to recurse. We can easily solve this, as if we have the distances from any other vertex, we can dene a price function which will make every edge positive and enable us to apply Dijkstra. We may therefore choose a boundary vertex. We now need to "glue" these the smallest distances we have. Note that we may glue only along the boundary cycle, i.e. any shortest path from $x$ to $y$ will have the following form: an inital and last segment, from x to the boundary cycle and from a vertex from the boundary cycle to $y$, and then a couple of other paths between vertices on the boundary cycle, paths which stay within one of the two parts. Therefore, it seems natural to try to compute the distances between vertices on the boundary (as they form the ``bulk'' of the $x-y$ path).
+In this section we will provide all the neccessary details and prove the correctness of the algorithms. We will focus more on the $\mathcal{O}(n\log^2(n))$  algorithm, which provides more intuition into how and why the algorithms works, and only sketch how we can adjust the algorithms to obtain the $\mathcal{O}(n\log^2(n)/\log(\log(n)))$ time bound.
 
-We already have the distances between two vertices on the boundary within each of the two parts (for proving the first part an algorithm of Klein that does exactly this is used). In order to combine these we will use Bellman-Ford, although a little modified. Note that for a convex quadrangle $ABCD$ we have that $AC + BD \geq AB + CD$. This seems trivial, but note that the lengths can take the value of any distance function, so also of the shortest path! This means that if we order the vertices on the boundary cyclically, there is special structure to this distance function. We will make this formal by using Monge matrices (note the equivalence of $AB + CD \leq AC + BD$ and $a_{ij} + a_{kl} \geq a_{il} + a_{kj}$ if $i \leq k$ and $j \leq l$). By what we said earlier, we only need to find the distances from a vertex on boundary to all the other vertces, and we can yet again, using the distances between boundary vertices, do this by using a price function and Dijkstra. This is how the $\mathcal{O}(n \log^2 n)$ algorithm works.
+First, let us present an overview of the five steps the algorithm consists of:
 
-For the $\mathcal{O}(n \log^2 n/ \log \log n)$ algorithm, we need to make certain improvements. First of all, it is obvious that if we try using divide-and-conquer with only two subproblems we are most certain to fail, as there is no easy way of improving the steps in the previous algorithm to take less than $\mathcal{O}(n \log n)$. For this, we will use the separator theorem of Fakcharoenphol and Rao~\cite{fakcharoenphol2001planar}. This, however, brings about problems we didn’t have to face before, the most complicated of which are the holes. Note that, however, the separator theorem assures many useful properties, one of which is the constant number of holes. This might enable using algorithms for every pair of holes within a region (where region is a part of the division). Also, there aren’t many boundary nodes per region.
+\textbf{Recursive call:} For $i=0,1$, find $d_i\ =\ \text{shortest-paths}(G_i,r)$, where $r$ is a vertex on the boundary.
+
+\textbf{Intra-part boundary distances:} For $i=0,1$, use $d_i$ to determine a table $\delta_i$ such that $\delta_i[u,v]$ is the $u$-to-$v$ distance in $G_i$ for any pair of vertices on the boundary.
+
+\textbf{Single-source inter-part boundary distances:} Use $\delta_0$ and $\delta_1$ to compute a table $B$ such that $B[v]$ is the $r$-to-$v$ distance in $G$, where $r$ is the boundary vertex used in the recursive call
+
+\textbf{Single-source inter-part distances:} Use $d_i$ and $B$, and Dijsktra to get a table $d'_i$, where $d'_i[v]$ is the $r$-to-$v$ distance in $G$.
+
+\textbf{Rerooting single-source distances:} Using $d'_i$, define a price function and use Dijstra to
+get a table $d$ such that $d[v]$ is the $s$-to-$v$ distance in $G$
+
+The recursive calls stop when the size of $G$ is at most 2, when the problem is trivial. $G_0$ and
+$G_1$ are the two regions obtained by Tarjan's separator theorem. For the better time bound,
+we will need to separate the graph into $p$ regions and recurse on each of them. For each region, we will find the distances with respect to a vertex $r_i$ on the boundary of that region. We work with $p$ as a variable; we will find the right $p$ in the next section, where we will analyze the run-time of the algorithm. Let us now analyze each of the three separately (the recursive call is trivial, and we just explained how we modify it for the better algorithm; rerooting is also clear, as by using the price function we can apply Dijkstra; this works for both algorithms). We first study how the simpler algorithm works, and then explain what has to be added to make the more complicated one work.
+
+\subsubsection{Intra-part boundary distances}
+\label{sec: intra-part boundary distances}
+
+We first present the algorthm. It works also for the more the second algorithm, when we might have holes.
+
+\begin{algorithm}[!htb]
+    \refstepcounter{algorithm}
+    \label{alg:region}
+    \begin{algorithmic}
+        \ForAll {Regions $R$}
+            \State Compute a price function using the distance function from the recursive call
+            \ForAll {holes $H\in R$}
+                \State Make $H$ outer face, using inversion
+                \State Apply Klein's algorithm with $H$ as outer face
+                \State Compute distances from all vertices of $H$ to all boundary vertices of $R$
+            \EndFor
+        \EndFor
+    \end{algorithmic}
+\end{algorithm}
+
+Let us now exaplin it. As we already have the distances from one vertex of each region, we can define a price function and make the edge costs nonnegative. We can use Klein's algorithm to (implicitly) compute the shortest-path trees for each node on the outer face. Furthermore, given any two vertices, we can use Klein's algorithm to compute the distance between vertices on the outer face and vertices on boundary in $\mathcal{O}(\log n)$ time. As the boundary has $\mathcal{O}(\sqrt{n})$ vertices, we can compute all distances in $\mathcal{O}(n\log n)$ time. In general, we will have at most $h$ holes ($h$ constant) and each region will have a boundary of at most $\sqrt{n/p}$ vertices, so the runtime is $\mathcal{O}(hn/p\log n) = \mathcal{O}(n/p\log n)$.
+
+\subsubsection{Single-source inter-part boundary distances}
+
+We now want to compute the distance in $G$ between any two boundary nodes. We will need the following easy
+
+\begin{lemma}
+If $v$ and $u$ are two boundary nodes, and $P$ be a simple path between them, then $P$ can be decomposed as $P=P_1P_2\ldots P_k$, where each $P_i$ is a path between two boundary nodes and is included in $G_{i \text{mod} 2}$
+\end{lemma}
+
+\begin{proof}
+Starting at $v$, follow path $P$ until the first point not in $G_1$ is reached. Let $P_1$ be the path till that point (not including it). The point where $P_1$ ended is a boundary node, as it is in $G_1$ and i has a neighbor in $G_0$. Continue this procedure till we traversed all of $P$.
+\end{proof}
+
+Let $V_c$ be the boundary vertices. As they form a cycle (we are currently analyzing the first algorithm, so the division is that of Tarjan), we order the vertices in $V_c$ in trigonometric order (this will be useful later on). The algorithm is as follows.
+
+\begin{algorithm}[!htb]
+  \refstepcounter{algorithm}
+  \label{alg: bellman-ford}
+  \begin{algorithmic}
+    \State $e_0[v] = \infty$ for all $v \in V_c$
+    \State $e_0[r] = 0$
+    \ForAll{ $j \ in \{1,2,\ldots,|V_c|\}$}
+      \ForAll{ $v\in V_c$}
+        \State $e_j[v] = \min_{w\in V_c} \{e_{j-1}[w] + \delta_i(v,w)$, where $i = j \mod 2$
+      \EndFor
+    \EndFor
+    \ForAll{$v\in V_c$}
+      \State $B[v] := e_{|V_c|}[v]$
+    \EndFor
+  \end{algorithmic}
+\end{algorithm}
+
+This algorithm resembles Bellman-Ford (the difference is that for each two vertices, there are two edges between them). To prove its correctness, we need the following
+
+\begin{lemma}
+After table $e_j$ is updated, $e_j[v]$ will be the length of the shortest $r$-to-$v$ path of the form $P_1P_2\ldots P_j$, where each $P_j$ is a path in $G_{j\mod 2}$ between two boundary nodes.
+\end{lemma}
+
+\begin{proof}
+We use induction. The case $j=1$ is obvious, as $\delta_i(v,w)$ is the length of the sortest $v$-to-$w$ path in $G_i$. For the induction step, suppose there were a shorter path $P' = P'_1P'_2\ldots P'_j$. Let $Q = P'_1P'_2\ldots P'_{j-1}$. Let $r$ and $u$ be the endvertices of $Q$. The way the algorithm works proves that $e_j[v] \leq e_{j-1}[u] + \delta_{j\mod 2}(u,v)$. We have $\text{len}(P') = \text{len}(Q) + \delta_{j\mod 2}(u,v)$. But $e_{j-1}[u]\geq \text{len}(Q)$ (by the induction hypothesis), so $e_j[v]\leq \text{len}(P')$, so $P'$ is not shorter than the $e_j[v]$-length path.
+\end{proof}
+
+If this algorithm were to run \textit{exactly} like Bellman-Ford, the runtime would be $|V_c|^3 = \mathcal{O}(n\sqrt{n})$, which is not the time bound we want. The improvement comes from the fact that we ordered $V_c$ trigonometrically. Specifically, note that computing $e_j[x]$ for a fixed $j$ and variable $x$ takes $|V_c|^2$ time. We will imporve this using Monge convexity, as follows: Let $A$ be a $|V_c|$x$|V_c$ matrix such that $a_{kl} = e_{j-1}[v_k]+\delta_i(v_k,v_l)$ (note that $v_1,v_2,\ldots,v_{|V_c|}$ is the cyclical order of the boundary vertices). It is clear that $e_j[v_i]$ is the minima in column $j$. We will prove that the upper and lower triangles are Monge convex.
+
+\begin{lemma}
+For any four indices $k,k',l,l'$ such that $A_{kl}, A_{kl'}, A_{k'l}, A_{k'l'}$ are all in the upper or in the lower triangle (i.e. either $1\leq k\leq k'\leq l\leq l'\leq |V_c|$ or $1\leq l\leq l'\leq k\leq k'\leq |V_c|$) we have that $$a_{kl}+a_{k'l'} \geq a_{kl'}+a_{k'l}$$ or the upper and lower triangles of $A$ are Monge convex.
+\end{lemma}
+
+\begin{proof}
+Note that each term has $e_{j-1}[v_k] + e_{j-1}[v_{k'}]$ in it, so we only need to prove that $\delta_i(v_k,v_l) + \delta_i(v_{k'},v_{l'}) \geq \delta_i(v_k,v_{l'})+\delta_i(v_{k'},v_l)$. Note that $v_k,v_{k'},v_l,v_{l'}$ are cyclical in this order, and the $\delta_i$ paths all stay within one region, so the $k$-to-$l$ and $k'$-to-$l'$ paths must intersect. If $O$ is a point of intersection, the triangle inequality tells us that the sum of the $k$-to-$O$ and $O$-to-$l'$ portions of the two previous paths is at least the length of the $k$-to-$l'$ path, and similarly for the $k'$-to-$l$ path. The inequality is therefore proved.
+\end{proof}
+
+We can now find the column minima for both the upper and the lower triangles, and compute the minima of the two numbers per column. Using the algorithm for Monge matrices stated in the background, we get a $|V_c|\alpha(|V_c|)$ time bound for computing all the $e_j$s, so a total tiem bound of $\mathcal{O}(n\alpha(n))$.
+
+Let us now see what we can do if the division is into $p$ parts. Note that we will fix a vertex $r$ from one of the boundary vertices used in the recursive call and compute the distances in $G$ from $r$ to all boundary vertices. First of all, note that Lemma 5.1 has an easy equivalent, namely each $P_i$ is a path between two boundary nodes that stays within a region. Now, if the region had no holes, there is also an easy equivalent of the algorithm. Namely, $e_j[v]$ will be the shortest length of an $r$-to-$v$ path that has at most $j$ "pieces", where a piece is a path such as $P_i$. For each $j\in \{1,\ldots,|B|\}$ we will have to run the following piece of code:
+
+\begin{algorithm}[!htb]
+  \refstepcounter{algorithm}
+  \label{multiple-regions}
+  \begin{algorithmic}
+    \ForAll{regions $R$}
+      \State Let $C$ be the cycle defining the boundary of $R$
+      \ForAll{$v in C$}
+        \State $e_j[v] = \min\{e_j[v],\min_{w\in C}\{e_{j-1}[w]+d_R(w,v)\}\}$
+      \EndFor
+    \EndFor
+  \end{algorithmic}
+\end{algorithm}
+
+Here $d_R$ represents the distance between $w$ and $v$ in regiion $R$. Lemmas 5.2 and 5.3 have easy equivalents, and the total run-time per region is $|C|\alpha(|C|) = \mathcal{O}(\sqrt{n/p}\alpha(n))$. There are $p$ regions and the algorithm is run for each $j$ (i.e. $|B|$ times), so the total runtime will be $\mathcal{O}(np\alpha(n))$.
+
+We will now breifly describe what happens when we have holes. What does the algorithm just showed do? It relaxes, for the boundary $C$ of $R$, all the edges between vertices in $C$. This is now not enough, as the boundary of $R$ might have other vertices. First, it is easy to relas the edges between vertices of the same hole: use the inversion trick to make the hole the boundary cycle, and apply the same relaxation process. Relaxing the edges between two different holes $C_1$ and $C_2$ is considerably more difficult. Note that, however, as there are at most a constant number of holes, dealing with each pair separately won't worsen the time bound. We therefore only concentrate on the relaxing the edges between $C_1$ and $C_2$ We will identify the holes with their set of vertices. We also make $C_1$ the outer cycle of $R$ by inversion. The reason why the relaxation process doesn't work for this case is that there is no meaningful way of ordering the vertices of $C_1\cup C_2$. This is a major issue, as we used the order to obtain the Monge convexity of the lower/upper triangles of the matrix
+
+        % TODO I figure here would go well, to prove that there is really no meaningful way of ordering the cycles, as we can still find non-intersecting cycles.
+
+We will therefore try to unite the two cycles. Let $P$ be a path between the two cycles. We duplicate $P$ into two paths $P'$ and $P''$, as shown in the figure.
+
+        % TODO Add the figure
+
+Now, $C_1$ and $C_2$ have been united and we can apply the relaxation process from before. However, there is now a problem: some path from $v\in C_1$ to $u\in C_2$ might cross $P$, and these paths do not exist in the graph where $P$ is duplicated. However, this problem is ammendable: If $v$ is a vertex on $C_1$, let $T$ be the shortest-path tree with root $v$. We can find $T$ in $|C_1|\log |C_1|$ time, by using the distances in $R$ we obtained from the recursive call to get a price function, and then apply Dijkstra. We can now define the rightmost and leftmost paths of $T$. By a careful analysis of the possible cases, and the fact that $T$ is the shortest-path tree with root $v$, one can prove that any shortest path between $u\in C_1$ to $w \in C_2$ can cross at most one of the two special paths. Duplicating each of the paths one at a time and running the Bellman-Ford two times and taking the minimum of the two obtained distances, we get the proper relaxation for edges between the two holes. The running time is dominated by the running time of Dijkstra, so it is $\mathcal{O}(\sqrt{n/p}\log n/p)$. As we run the algorithm for each region and each $j$, we get a total time bound of $\mathcal{O}(np\log n/p)$.
+
+\subsubsection{Single-source inter-region distances}
+
+As this part is similar for both algorithms, we will study the variant for the second one, noting the eventual differences. We will proceed as follows: having vertex $r$ fixed, we want to find, for each region $R$, the distances in $G$ from $r$ to the vertices of this region. We will take each region separately. We will construct an auxiliary graph as follows: let $R'$ be the graph obtained by adding to $R$ e vertex $r'$ and edges between $r'$ and all the boundary vertices $v$ of $R$, such that the length of the $(r',v)$ edge is the distance in $G$ between $r$ and $v$. We can do all of these in $\mathcal{O}(\sqrt{n/p})$ time, as there are so many boundary vertices, and the distances have already been computed. Distances from $r'$ to vertices of $R'$ are equal to distances in $G$ from $r$ to vertices of $R$. Let $r_R$ be the boundary vertex for which the distances in $R$ from $r_R$ have been computed in the recursive call. Define the following price function: $\phi(v) = d_R(r_R,v)$, if $v\neq r'$ and $\phi(v) = D$ otherwise, where $D = \max_{b\in B_R}\{d_R(r_R,b)-d_G(r,b)\}$, where $B_R$ is the set of the boundary vertices of $R$. Let us prove that
+
+\begin{lemma}
+The function $\phi$ is a feasible price function for $R'$.
+\end{lemma}
+
+\begin{proof}
+Let $(u,v)$ be an edge of $R'$. We have that $v\neq r'$, so $\phi(v) = d_R(r_R,v)$. If also $u\neq r'$ we have that $\phi(u) + w((u,v)) -\phi(v) = d_R(r_R,u) + w((u,v)) - d_R(r_R,v)\geq 0$ because of the triangle inequality ($w((u,v))$ is the weight of the edge $(u,v)$). Otherwise, we have that $\phi(u)+w((u,v))-\phi(v) = D + d_G(r,v) - d_R(r_R,v)\geq 0$ by the way $D$ was defined. The lemma is proved.
+\end{proof}
+
+We can now safely apply Dijkstra to get the appropriate distances. The running time for a region is $\mathcal{O}(\sqrt{n/p}\log n/p$, so for all the regions the runtime is $n\log n$. For the $\mathcal{O}(n\log^2 n)$ algorithm, note that there are only two regions, so the $\mathcal{O}(n\log n)$ time bound still holds.
+
+\subsection{Time bounds}
+
+For the simpler algorithm, it is easy to see that, if $T(G)$ is the time bound for $G$, we have that $T(G) = T(G_0) + T(G_1) + \mathcal{O}(|G|\log |G|)$, where $|G_0|, |G_1|\leq 2|G|/3$. Let us take a big enough constant $C$, and try to prove inductively that $T(G)\leq Cn\log^2 n$, where $n=|G|$. Note that the function $x\log x + (a-x)\log (a-x)$ is decreasing on $[0,a/2]$ and increasing on $[a/2,a]$, so the maximum of $T(G_0)+T(G_1)$ happens when $|G_0|$ and $|G_1|$ are as far apart as possible. We can suppose that $|G_0|+|G_1| = n$, as the extra terms would be $\mathcal{O}(\sqrt{n}$, and would only add a $\mathcal{O}(\sqrt{n}\log^2 n)$ factor to $T(G)$, which can be encompassed in the $\mathcal{O}(n\log n)$ term. Therefore, $T(G)\leq C(n/3\log^2 n/3 + 2n/3\log^2 2n/3) + \mathcal{O}(n\log n)$. Note that tyhere is a constant $c>0$ (actually $\log 3$) such that $\log n/3 < \log n - c$ (and the same for $\log 2n/3$) so we have $C(n/3\log^2 n/3 + 2n/3\log^2 2n/3) < Cn\log^2 n - Bn\log n$, for a constant $B$ proportional to $C$. Making $C$ large enough "kills" the $\mathcal{O}*n\log n)$ term, so we indeed get $T(G) = \mathcal{O}(n\log^2 n)$.
+
+Let us now see what the time bound for the other algorithm is. The runtime for the four steps (i.e. everything except recursion) is $\mathcal{O}(n\log n + np\alpha(n))$. Also, with this $p$, the depth of the recursion three is $\log n/\log p$, so the total runtime is $\mathcal{O}(\frac{\log n}{\log p}(n\log n+ np\alpha(n))) = \mathcal{O}(\frac{n\log^2 n}{\log p} + \frac{np\log n\alpha(n)}{\log p})$ (the proof of this upper bound is in the same vain as the previous one, although somewhat more tedios). By choosing $p = \log n/\alpha(n)$, we get the desired time bound.
 
 
 \section{Conclusion}
