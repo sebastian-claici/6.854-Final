@@ -604,33 +604,32 @@ The correctness proof did not rely on the $\alpha_i$ or $r_i$ and follows from s
 \section{Single source shortest paths with negative edge weights}
 \label{sec:arbitr-edge-weights}
 
-\subsection{Overview}
-\label{sec: overview}
+If we exploit the sparsity of planar graphs, the running time of Bellman-Ford is $\mathcal{O}(n^2)$. We have had success so far with planar graph separators, so it should come as no surprise that using separators here also leads to large speed-ups.
 
-Given the separator theorem of Tarjan, divide-and-conquer algorithms on planar graphs might work: the fact that each part has many vertices adds only a factor of $\log(n)$ to the runtime of what we have to do in order to combine the two parts and furthermore the two parts have very little in common ($\mathcal{O}(\sqrt{n})$) vertices, so now even slow algorithms as Bellman-Ford seem appealing. Actually, this is what we will do, although in order to get tighter bounds we will need an improved variant of Bellman-Ford, based on the special structure of planar graphs.
+In this section we assume that the source node $s$ is on the boundary of the infinite face $f_{\infty}$. Recall from section~\ref{sec:background} that we can always place a vertex on the boundary of $f_{\infty}$. We also make use of Klein's multiple-source shortest paths algorithm~\cite{klein2005multiple}. Klein's algorithm yields shortest paths from all nodes on the boundary of $f_{\infty}$ (the multiple sources) to all other nodes in $\mathcal{O}(n \log n)$ time.
 
-Let us now go more in depth into how the algorithms work, while still not touching the details, which we will touch in the next section. First of all, note that the vertex $s$ from which we want to find the distances might not be a boundary vertex, which will couse problems when we try to recurse. We can easily solve this, as if we have the distances from any other vertex, we can define a price function which will make every edge positive and enable us to apply Dijkstra. We may therefore choose a boundary vertex. We now need to "glue" these the smallest distances we have. Note that we may glue only along the boundary cycle, i.e. any shortest path from $x$ to $y$ will have the following form: an inital and last segment, from $x$ to the boundary cycle and from a vertex from the boundary cycle to $y$, and then a couple of other paths between vertices on the boundary cycle, paths which stay within one of the two parts. Therefore, it seems natural to try to compute the distances between vertices on the boundary (as they form the "bulk" of the $x-y$ path). Note that
-for this we need the distance within one region for any two vertices on the boundary, but we can do this using the distance function we computed in the recursion step by using Klein's algorithm. Now, in order to combine these pieces we will use Bellman-Ford, although a modified to get the proper time bounds. Note that for a convex quadrilateral $ABCD$ we have that $AC+BD\geq AB+CD$. This seems trivial, but note that  the lengths can take the value of any distance function, so also of the shortest path! This means that if we order the vertices on the boundary cyclically, there is special structure to this distance function. We will make this formal by using Monge matrices (note the equivalence of $AB+CD\leq AC+BD$ and $a_{ij}+a{kl}\geq a_{il}+a_{kj}$ if $i\leq k$ and $j\leq l$). By what we said earlier, we only need to find the distances from a vertex on boundary to  all the other vertces, and we can yet again, using the distances between boundary vertices, do this by using a price function and Dijkstra. This is how the $\mathcal{O}(n\log^2(n))$ algorithm works.
+\subsection{An $\mathcal{O}(n \log^2 n)$ solution}
+\label{sec:first-solution}
 
-For the $\mathcal{O}(n\log^2(n)/\log(\log(n))$ algorithm, we need to make certain improvements. First of all, it is obvious that if we try using divide-and-conquer with only two subproblems we are most certain to fail, as there is no easy way of improving the steps in the previous algorithm to take less than $\mathcal{O}(n\log(n))$. For this, we will use the separator theorem of Fakcharoenphol and Rao. This, however, brings about problems we didn't have to face before, the most complicated of which are the holes. Note that, however, the separator theorem assures many useful properties, one of which is the constant number of holes. This might enable using algorithms for every pair of holes within a region (where region is a part of the division).
+We first provide intuition into the algorithm. As with the simple non-negative shortest paths algorithm, we first find shortest paths from boundary vertices to other boundary vertices within all subregions. We can ``glue'' shortest paths within regions together to find true shortest paths between boundary vertices of separate regions. We then tidy up by finding shortest paths within each region.
 
-\subsection{The algorithm and Correctness}
-\label{sec: details and overview}
+We focus on the $\mathcal{O}(n\log^2 n)$  algorithm, and provide intuition into how to modify the algorithm to achieve an $O(\log \log n)$ speed-up.
 
-In this section we will provide all the neccessary details and prove the correctness of the algorithms. We will focus more on the $\mathcal{O}(n\log^2(n))$  algorithm, which provides more intuition into how and why the algorithms works, and only sketch how we can adjust the algorithms to obtain the $\mathcal{O}(n\log^2(n)/\log(\log(n)))$ time bound.
+We give the high-level stages of the algorithm first. Assume that we are given a cycle separator of size $\mathcal{O}(\sqrt{n})$ that splits the graph into an outside $G_0$ and an inside $G_1$. Let $r$ be any vertex on the separator.
 
-First, let us present an overview of the five steps the algorithm consists of:
+\begin{enumerate}
 
-\textbf{Recursive call:} For $i=0,1$, find $d_i\ =\ \text{shortest-paths}(G_i,r)$, where $r$ is a vertex on the boundary.
+\item \textbf{Recursive call:} Recursively compute the distances from $r$ within $G_0$ and $G_1$.
 
-\textbf{Intra-part boundary distances:} For $i=0,1$, use $d_i$ to determine a table $\delta_i$ such that $\delta_i[u,v]$ is the $u$-to-$v$ distance in $G_i$ for any pair of vertices on the boundary.
+\item \textbf{Intra-part boundary distances:} Use the multiple-source shortest paths algorithm of Klein to compute all distances in $G_0$ and $G_1$ between boundary vertices. Let $\delta_i(u,v)$ be the shortest distance between boundary vertices $u$ and $v$ in $G_i$.
 
-\textbf{Single-source inter-part boundary distances:} Use $\delta_0$ and $\delta_1$ to compute a table $B$ such that $B[v]$ is the $r$-to-$v$ distance in $G$, where $r$ is the boundary vertex used in the recursive call
+\item \textbf{Single-source inter-part boundary distances:} Use $\delta_0$ and $\delta_1$ to compute a table $B$ such that $B[v]$ is the $r$-to-$v$ distance in $G$.
 
-\textbf{Single-source inter-part distances:} Use $d_i$ and $B$, and Dijsktra to get a table $d'_i$, where $d'_i[v]$ is the $r$-to-$v$ distance in $G$.
+\item \textbf{Single-source inter-part distances:} For each $G_i$, use $d_i$ and $B$ in a Dijsktra computation to find distances in $G$ from $r$ to all vertices of $G_i$. Let $d'_i[v]$ be the $r$-to-$v$ distance in $G$.
 
-\textbf{Rerooting single-source distances:} Using $d'_i$, define a price function and use Dijstra to
-get a table $d$ such that $d[v]$ is the $s$-to-$v$ distance in $G$
+\item \textbf{Rerooting single-source distances:} We now have distances in $G$ from $r$. Use these distances as a feasible price function to compute, using Dijkstra's, the distances from $s$ in $G$.
+
+\end{enumerate}
 
 The recursive calls stop when the size of $G$ is at most 2, when the problem is trivial. $G_0$ and
 $G_1$ are the two regions obtained by Tarjan's separator theorem. For the better time bound,
