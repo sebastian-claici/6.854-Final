@@ -4,7 +4,7 @@
 %%% TeX-master: t
 %%% End:
 
-\documentclass[12pt]{article}
+\documentclass[11pt]{article}
 
 \usepackage{booktabs}
 \usepackage{framed}
@@ -48,7 +48,7 @@
 \maketitle
 
 \begin{abstract}
-  We survey advances in single-source shortest paths algorithms on the special case of planar graphs. For the case of non-negative edge weights, we show $O(n\log \log n)$ algorithm and provide intuition for an optimal $O(n)$ algorithm. For arbitrary edge weights, we give a $O(n\log^2 n)$ algorithm and show how to modify it to achieve $O(n\log^2 n/\log \log n)$.
+  We survey advances in single-source shortest paths algorithms on the special case of planar graphs. For the case of non-negative edge weights, we show $\mathcal{O}(n\log \log n)$ algorithm and provide intuition for an optimal $\mathcal{O}(n)$ algorithm. For arbitrary edge weights, we give an $\mathcal{O}(n\log^2 n)$ algorithm and show how to modify it to achieve $\mathcal{O}(n\log^2 n/\log \log n)$.
 \end{abstract}
 
 \section{Introduction}
@@ -58,9 +58,9 @@ Finding shortest paths in graphs is one of the oldest combinatorial optimization
 
 While for general graphs the problem has been effectively solved decades ago, for the special case where the graph is planar has seen a number of surprising developments in recent years. We enumerate these here, and detail them in later sections.
 
-For directed graphs where the edge weights are non-negative, the first improvement over $O(n\log n)$ came from Federickson who gave a $O(n \sqrt{\log n}$) bound~\cite{federickson1987fast}. This was improved nearly a decade later by Henzinger et al.\ to linear time~\cite{henzinger1997faster}. We remark that for general \emph{undirected} graphs with positive edge weights, there are known linear time algorithms for single-source shortest paths in the RAM model~\cite{thorup1999undirected}.
+For directed graphs where the edge weights are non-negative, the first improvement over $\mathcal{O}(n\log n)$ came from Federickson who gave a $\mathcal{O}(n \sqrt{\log n}$) bound~\cite{federickson1987fast}. This was improved nearly a decade later by Henzinger et al.\ to linear time~\cite{henzinger1997faster}. We remark that for general \emph{undirected} graphs with positive edge weights, there are known linear time algorithms for single-source shortest paths in the RAM model~\cite{thorup1999undirected}.
 
-For directed graphs with arbitrary edge weights, there have been recent developments that greatly improve upon a naive $O(n^2)$ Bellman-Ford. In 2010, Klein, Mozes and Weimann gave a $O(n \log^2 n)$ algorithm~\cite{klein2010shortest}, which was improved to $O(n \log^2 n / \log \log n)$ shortly thereafter~\cite{mozes2010shortest}. Both algorithms make use of a $O(n \log n)$ multiple-source shortest paths algorithm due to Klein~\cite{klein2005multiple}.
+For directed graphs with arbitrary edge weights, there have been recent developments that greatly improve upon a naive $\mathcal{O}(n^2)$ Bellman-Ford. In 2010, Klein, Mozes and Weimann gave a $\mathcal{O}(n \log^2 n)$ algorithm~\cite{klein2010shortest}, which was improved to $\mathcal{O}(n \log^2 n / \log \log n)$ shortly thereafter~\cite{mozes2010shortest}. Both algorithms make use of a $\mathcal{O}(n \log n)$ multiple-source shortest paths algorithm due to Klein~\cite{klein2005multiple}.
 
 The goal of this paper is to provide intuition into some of the recent developments in planar graph theory.
 
@@ -69,13 +69,22 @@ This paper is organized as follows: in section~\ref{sec:background} we provide b
 \section{Background}
 \label{sec:background}
 
-We assume the reader is familiar with basic graph theory. Planar graphs are graphs that can embedded in Euclidean space such that no two edges cross each other (a more useful characterization is given shortly). Every embedding of a planar graph delineates several faces, one of which is unbounded and represents the ``outside'' of the graph; we call this face the infinite face, and denote it by $f_{\infty}$. The following theorems are used implicitly or explicitly throughout the paper.\\
+We assume the reader is familiar with basic graph theory. Planar graphs are graphs that can be drawn in Euclidean space such that no two edges cross each other. Every drawing of a planar graph delineates several faces, one of which is unbounded and represents the ``outside'' of the graph; we call this face the infinite face, and denote it by $f_{\infty}$. The following theorems are used implicitly or explicitly throughout the paper.\\
 
 \begin{theorem}[Jordan curve theorem]
   Let $C$ be any closed curve in the plane. Removal of $C$ divides the plane into exactly two connected regions, the ``inside'' and the ``outside'' of $C$.
 \end{theorem}
 
-An interesting proof of the Jordan curve theorem that uses the non-planarity of $K_{3,3}$ was given in~\cite{thomassen1992jordan}.\\
+An interesting proof of the Jordan curve theorem that uses the non-planarity of the complete bipartite graph on two sets of 3 edges ($K_{3,3}$ shown in figure~\ref{fig:kuratowski}b) was given in~\cite{thomassen1992jordan}.\\
+
+\begin{theorem}[Euler's formula for planar graphs]
+  If $n$ is the number of nodes, $m$ the number of edges, and $f$ the number of faces of a planar graph, the following formula holds:
+\[
+  n - m + f = 2.
+\]
+\end{theorem}
+
+From Euler's formula, we can quickly prove a bound on the number of edges in a planar graph:\\
 
 \begin{theorem}
   Any $n$-vertex planar graph with $n \geq 3$ contains no more than $3n-6$ edges.\\
@@ -88,7 +97,7 @@ An interesting proof of the Jordan curve theorem that uses the non-planarity of 
 An in-depth discussion of Kuratowski's theorem and a short proof are found in~\cite{thomassen1981kuratowski}. The Kuratowski subgraphs are shown in figure~\ref{fig:kuratowski}. An immediate corollary of Kuratowski's theorem is that we can shrink edges and subgraphs while preserving planarity.\\
 
 \begin{corollary}
-  Shrinking any edge of a planar graph to a single vertex preserves planarity. Applying this inductively, shrinking any subgraph to a single vertex preserves planarity.
+  Shrinking any edge of a planar graph to a single vertex preserves planarity. Applying this inductively, shrinking any subgraph to a single vertex preserves planarity.\\
 \end{corollary}
 
 \begin{figure}[!htb]
@@ -167,7 +176,11 @@ A stereographic projection can be used to embed nodes on a plane onto a sphere w
   \label{fig:stereo}
 \end{figure}
 
-Finally, specifically for shortest paths algorithms, we use the fact that every planar graph can be transformed by adding $O(n)$ vertices and edges into another planar graph such that every node has indegree and outdegree at most $2$.
+Finally, specifically for shortest paths algorithms, we note the following:\\
+
+\begin{theorem}
+  A planar graph on $n$ nodes can be transformed by adding $\mathcal{O}(n)$ nodes and edges into another planar graph such that every node has in- and out-degree at most $2$.
+\end{theorem}
 
 \section{Planar Graph Separators}
 \label{sec:graph-sep}
@@ -187,7 +200,7 @@ Finally, specifically for shortest paths algorithms, we use the fact that every 
 
         \item There are no edges between nodes in $A$ and nodes in $B$.
 
-        \item The size of the separator $S$ is small. In particular, we can achieve $|S| = O(\sqrt{n})$.
+        \item The size of the separator $S$ is small. In particular, we can achieve $|S| = \mathcal{O}(\sqrt{n})$.
     \end{itemize}
 
     For a root vertex $r$, we can build a spanning tree of the graph $G$ that has depth $d$. We define $T^*$ as the dual tree of the triangulated version of $G$. From this tree, every non-tree edge $e$ defines a fundamental cycle $C(e)$. Since the depth of $T$ is at most $d$, we know that $|C(e)| \leq 2d + 1$. However, because the diameter of $G$ may be large, we want to reduce it so that we can constrain $|C(e)| \leq \sqrt{n}$. Central to developing this better partition is the ability to divide the planar graph into levels.
@@ -203,7 +216,7 @@ Given some $n$-vertex planar graph $G$ with nonnegative vertex costs, it is poss
 \[
 \sum_{i \leq i_0} |L_i(v)| \geq \frac{n}{2} \quad \text{and}\quad \sum_{i \geq i_0} |L_i(v)| \geq \frac{n}{2}.
 \]
-This step can be performed in $\mathcal{O}(n)$.
+This step can be performed in $\mathcal{O}(n)$.n
 
         \item Find levels $i_- \leq i_0 \leq i_+$ such that the number of vertices on levels $i_-$ and $i_+$ is less than $\sqrt{n}$. Note that any level
         \begin{itemize}
@@ -302,19 +315,20 @@ A suitable $r$-division is shown in figure~\ref{fig:rsep}.
 
     Starting with the initial graph $G$, all of the vertices are in the interior region. A separator algorithm can then be applied to the graph with all of the vertex weights set to $\frac{1}{n}$. This will produce three sets: $A$, $B$, and $C$. From these two sets, we can infer two regions that have the vertex sets $A_1 \subseteq A \cup C$ and $A_2 \subseteq B \cup C$. These two vertex sets will have sizes $\alpha n + \mathcal{O}\sqrt{n}$ and $(1 - \alpha) n + \mathcal{O}\sqrt{n}$ with $\frac{1}{3} \leq \alpha \leq \frac{2}{3}$. To continue the process, the separator algorithm can be recursively applied to any region that has more than $r$ vertices. The total runtime of this algorithm is $\mathcal{O} \left (n \log \left (\frac{n}{r} \right ) \right )$.
 
-\textcolor{red}{TODO: $r$-separators can be found in $O(n\log r)$ time. Detail this algorithm. Provide intuition on how to go from that to $O(n)$ time.}
+\textcolor{red}{TODO: $r$-separators can be found in $\mathcal{O}(n\log r)$ time. Detail this algorithm. Provide intuition on how to go from that to $\mathcal{O}(n)$ time.}
 
 \section{Single source shortest paths with non-negative edge weights}
 \label{sec:nonn-edge-weights}
 
-The fastest algorithm for single-source shortest paths in general graphs with non-negative edge weights is Dijkstra's algorithm which runs in time $\mathcal{O}(m + n\log n)$. Planar graphs are sparse, so simply applying Dijkstra's algorithm on a planar graph already gives you an $\mathcal{O}(n \log n)$ algorithm.
+The fastest algorithm for single-source shortest paths in general graphs with non-negative edge weights is Dijkstra's algorithm which runs in time $\mathcal{O}(m + n\log n)$. Planar graphs are sparse, so simply applying Dijkstra's algorithm on a planar graph already yields an $\mathcal{O}(n \log n)$ algorithm.
 
 We can do much better by using the ideas developed in section~\ref{sec:graph-sep}.
 
 \subsection{Simple algorithm}
 \label{sec:simple-algorithm}
 
-A simple $\mathcal{O}(n\sqrt{\log n \log \log n})$ emerges beautifully just from an $r$-division if we set $r = \frac{\log n}{\log \log n}$. The first step is to compute the single-source shortest paths for each boundary node in each region $R$.
+A simple $\mathcal{O}(n\sqrt{\log n \log \log n})$ emerges beautifully from an $r$-division if we set $r = \log n/\log \log n$. The first step is to compute the single-source shortest paths for each boundary node in each region $R$. As customary, we use $s$ for the source node throughout this section.
+
 
 \begin{algorithm}[!htb]
   \refstepcounter{algorithm}
@@ -355,14 +369,16 @@ Using $r=\frac{\log n}{\log \log n}$, the first phase is bounded above by
 \[
   O\left(n\frac{\sqrt{\log \log n}}{\sqrt{\log n}} \log n\right)= O(n \sqrt{\log n \log \log n}),
 \]
-the second phase is an SSSP in a size $O(n \frac{\sqrt{\log \log n}}{\sqrt{\log n}})$ graph, and thus also $O(n \sqrt{\log n \log \log n})$, while the tidying up is a series of SSSPs in each of the regions, and has the same bound as the first phase---$O(n \sqrt{\log n \log \log n})$. The total time bound ends up $O(n \sqrt{\log n \log \log n})$.
+the second phase is an SSSP in a size $\mathcal{O}(n \frac{\sqrt{\log \log n}}{\sqrt{\log n}})$ graph, and thus also $\mathcal{O}(n \sqrt{\log n \log \log n})$, while the tidying up is a series of SSSPs in each of the regions, and has the same bound as the first phase---$\mathcal{O}(n \sqrt{\log n \log \log n})$. The total time bound ends up $\mathcal{O}(n \sqrt{\log n \log \log n})$.
 
 \subsection{Recursive subdivisions}
 \label{sec:recursion}
 
 We have improved upon Dijkstra's algorithm, but there is still room to do better. A recursive subdivision $\bar{r} = (r_0, \ldots, r_h)$ of a graph is a division in which the regions are subdivided recursively up to edges. A region at level $i$ is sub-divided into regions of size $r_{i-1}$. The regions at level $0$ are called atomic and contain only one edge $uv$.
 
-For each region $R$, we maintain a priority queue $Q(R)$ that stores the subregions of $R$ if $R$ is nonatomic, or the single arc $uv$ is $R$ is atomic. The algorithm ensures that for every region $R$, the minimum element of $Q(R)$ is the minimum label $d(v)$ over all edges $vw$ in $R$ that remain to be processed.
+For each region $R$, we maintain a priority queue $Q(R)$ that stores the subregions of $R$ if $R$ is nonatomic, or the single arc $uv$ is $R$ is atomic. We call and edge $uv$ \emph{active} if its head $v$ has a finite distance label $d(v)$, and \emph{inactive} if $d(v)$ is infinite. During execution, edges can change status from \emph{active} to \emph{inactive} several times. The algorithm ensures that for every region $R$, the minimum element of $Q(R)$ is the minimum label $d(v)$ over all edges $vw$ in $R$ that remain to be processed.
+
+We would like to apply Dijkstra's until completion in each region, and somehow bubble up the results on lower levels. Unfortunately, this idea does not lead to a faster algorithm. Instead, we try to work mostly on the lower levels and perform speculative work. The algorithm tries to ensure that, on average, the operations on large queues can be paid for by the many operations performed on small queues.
 
 \begin{algorithm}
   \refstepcounter{algorithm}
@@ -380,6 +396,8 @@ For each region $R$, we maintain a priority queue $Q(R)$ that stores the subregi
     \EndWhile
   \end{algorithmic}
 \end{algorithm}
+
+Each call to \textsc{Process} is effectively an invocation of Dijkstra's algorithm. If we're at the level of an edge, we try to relax that edge. Otherwise, we recursively call \textsc{Process} on the current best subregion to explore further.
 
 \begin{algorithm}[!h]
   \label{alg:process}
@@ -402,6 +420,7 @@ For each region $R$, we maintain a priority queue $Q(R)$ that stores the subregi
   \end{algorithmic}
 \end{algorithm}
 
+The calls to \textsc{Update} ensure that the information in parent regions stays consistent with work done at lower regions by bubbling up key updates that result in a new minimum.
 
 \begin{algorithm}[!h]
   \label{alg:update}
@@ -415,7 +434,7 @@ For each region $R$, we maintain a priority queue $Q(R)$ that stores the subregi
   \end{algorithmic}
 \end{algorithm}
 
-The algorithm repeatedly calls two subprocedures \textsc{Process} and \textsc{Update} to process individual regions and update parent regions. Unlike Dijkstra's algorithm, the work we do in a region is only speculative. Often we cannot afford to fully process a region, and executions are stopped after a fixed number of steps. Specifically, at level $i$, we perform $\alpha_i$ steps of Dijkstra's algorithm, where the $\alpha_i$ are parameters that will dictate the running time of the algorithm.
+Unlike Dijkstra's algorithm, the work we do in a region is only speculative. Often we cannot afford to fully process a region, and executions are stopped after a fixed number of steps. Specifically, at level $i$, we perform $\alpha_i$ steps of Dijkstra's algorithm, where the $\alpha_i$ are parameters that will dictate the running time of the algorithm.
 
 \subsubsection{Correctness}
 \label{sec:correctness}
@@ -424,7 +443,7 @@ Recall from Dijkstra's algorithm that three properties imply correctness:
 \begin{enumerate}
 \item Initialization: $d(s) = 0$.
 \item Minimum length property: $d(v)$ is an upper bound on the $s$ to $v$ distance
-\item Edges are relaxed: $d(v) \leq d(u) + c(u,v), \forall uv \in E$
+\item All edges are relaxed. We call an edge $uv$ is relaxed if $d(v) \leq d(u) + c(u,v)$.
 \end{enumerate}
 
 The first property is true at the start of the algorithm, and remains true throughout. The following lemma establishes the second property:\\
@@ -437,7 +456,7 @@ The first property is true at the start of the algorithm, and remains true throu
   Initially, all labels except $d(s)$ are infinity. The labels only get changed in line $4$ of \textsc{Process}, and assuming inductively that the old labels $d(v)$ and $d(u)$ are upper bounds on the distance to $u$ and $v$, it follows that the new labels will also be upper bounds.
 \end{proof}
 
-Similarly, the following three lemmas establish the third property.\\
+The following three lemmas establish the third property.\\
 
 \begin{lemma}
   If an edge $uv$ is inactive then it is relaxed.
@@ -482,7 +501,7 @@ When the algorithm terminates, the minimum key of the priority queue associated 
 \subsubsection{Analysis}
 \label{sec:analysis}
 
-We show that using  dividing the graph into $O(n/\log^4n)$ regions of size $O(\log^4 n)$ with boundaries of size $O(\log^2 n)$ and setting $\alpha_0 = 0, \alpha_1 = \log n$ and $\alpha_2 = 1$ yields an $O(n \log \log n)$ single source shortest paths algorithm. Note that this division is simply an $r$-division with $r=\log^4 n$, and thus $r_0=1, r_1 = \log^4 n$, and $r_2 = n$.
+We show that dividing the graph into $\mathcal{O}(n/\log^4n)$ regions of size $\mathcal{O}(\log^4 n)$ with boundaries of size $\mathcal{O}(\log^2 n)$ and setting $\alpha_0 = 0, \alpha_1 = \log n$ and $\alpha_2 = 1$ yields an $\mathcal{O}(n \log \log n)$ single source shortest paths algorithm. The $\alpha_i$ are parameters that dictate how much speculative work we do in a region before moving on. Note that this division is simply an $r$-division with $r=\log^4 n$, and thus $r_0=1, r_1 = \log^4 n$, and $r_2 = n$.
 
 We restate the algorithm:
 \begin{enumerate}
@@ -501,8 +520,8 @@ Intuitively, the \emph{charging invariant} says that the number of charges to an
 
  Let us first consider the number of pairs $(R,v)$ on each level to which we can charge truncated invocations to (recall that $v$ is an entry node into $R$):
 \begin{itemize}
-\item If $R$ has level $0$, then $R$ is charged by at most one level $0$ invocation. There are $O(n)$ pairs $(R,v)$ on level $0$, and thus $O(n)$ chargers.
-\item If $R$ has level $1$, the pair is charged by at most one level $1$ invocation and at most $\alpha_1 = \log n$ level $0$ invocations. There are $O(n/\log^4n)\cdot O(\log^2 n)$ pairs on level $1$.
+\item If $R$ has level $0$, then $R$ is charged by at most one level $0$ invocation. There are $\mathcal{O}(n)$ pairs $(R,v)$ on level $0$, and thus $\mathcal{O}(n)$ chargers.
+\item If $R$ has level $1$, the pair is charged by at most one level $1$ invocation and at most $\alpha_1 = \log n$ level $0$ invocations. There are $\mathcal{O}(n/\log^4n)\cdot O(\log^2 n)$ pairs on level $1$.
 \item If $R$ has level $2$, then the pair is charged by at most one level $2$ invocation, at most $\alpha_2 = 1$ level $1$ invocations, and at most $\alpha_2\alpha_1 = \log n$ level $0$ invocations. There is only one pair $(R,v)$ on level $2$, namely $(R_G,s)$.
 \end{itemize}
 
@@ -510,29 +529,29 @@ Let $s_i$ be the total number of invocations at level $i$ (truncated and non-tru
 
 All level $0$ invocations are truncated, thus
 \[
-s_0 = O(n)
+s_0 = \mathcal{O}(n)
 \]
  Each non-truncated level $j$ invocation results in $\alpha_j$ invocations at level $j-1$. Hence the number of level $1$ invocations is
 \[
-s_1 \leq s_0/\alpha_1 + t_1 = O(n/\log n) + O(n/\log^2 n).
+s_1 \leq s_0/\alpha_1 + t_1 = \mathcal{O}(n/\log n) + \mathcal{O}(n/\log^2 n).
 \]
  Similarly, the total number of level $2$ invocations is
 \[
-s_2 \leq s_1/\alpha_2 + 1 = s_1 + 1 = O(n/\log n).
+s_2 \leq s_1/\alpha_2 + 1 = s_1 + 1 = \mathcal{O}(n/\log n).
 \]
 
 Let's look at the time spent per invocation at each level. We bound the time required per queue operation; since at level $i$ there are $\alpha_i$ calls to lower levels, and thus $\alpha_i$ queue operations, this gives us a time bound per invocation.
 
 \begin{itemize}
 \item At level $0$, there is only one item in the queue, so operations take constant time, and there are $\alpha_0 = 0$ calls to lower levels.
-\item At level $1$, queues are of size $O(log^4 n)$, so queue operations take $O(\log \log n)$ time. There are $\alpha_1 = \log n$ calls to lower levels, for a total of $O(\log n \log \log n)$.
-\item At level $2$, queues are of size $O(n/\log^4 n)$, so queue operations take $O(\log n)$ time, and there are $\alpha_2 = 1$ calls to lower levels, for a total of $O(\log n)$.
+\item At level $1$, queues are of size $\mathcal{O}(log^4 n)$, so queue operations take $\mathcal{O}(\log \log n)$ time. There are $\alpha_1 = \log n$ calls to lower levels, for a total of $\mathcal{O}(\log n \log \log n)$.
+\item At level $2$, queues are of size $\mathcal{O}(n/\log^4 n)$, so queue operations take $\mathcal{O}(\log n)$ time, and there are $\alpha_2 = 1$ calls to lower levels, for a total of $\mathcal{O}(\log n)$.
 \end{itemize}
 
 To get our total time bounds, we multiply the time per invocation with the number of invocations at each level, and add everything up.
 \begin{align*}
-  \text{Total} &= O(\log n) \cdot O(n/\log n) + O(\log n \log \log n) \cdot O(n/ \log n) + O(1) \cdot O(n) \\
-               &= O(n \log \log n)
+  \text{Total} &= \mathcal{O}(\log n) \cdot \mathcal{O}(n/\log n) + \mathcal{O}(\log n \log \log n) \cdot \mathcal{O}(n/ \log n) + \mathcal{O}(1) \cdot \mathcal{O}(n) \\
+               &= \mathcal{O}(n \log \log n)
 \end{align*}
 The information is summarized in table~\ref{tab:process}.
 
@@ -543,15 +562,15 @@ The information is summarized in table~\ref{tab:process}.
 \ra{1.3}
 \begin{tabular}{@{}llllll@{}} \toprule
   Level & Calls & Time per invocation & No.\ $(R,v)$ pairs & No.\ invocations & Total time\\ \midrule
-  $2$ & $1$ & $O(\log n)$ & 1 & $O(n/\log n)$ & $O(n)$\\
-  $1$ & $\log n$ & $O(\log n \log \log n)$ & $O(n/\log^2 n)$ & $O(n/\log n)$ & $O(n\log \log n)$\\
-  $0$ & $0$ & $O(1)$ & $O(n)$ & $O(n)$ & $O(n)$\\ \midrule
-  Total & & & & & $O(n\log \log n)$\\
+  $2$ & $1$ & $\mathcal{O}(\log n)$ & 1 & $\mathcal{O}(n/\log n)$ & $\mathcal{O}(n)$\\
+  $1$ & $\log n$ & $\mathcal{O}(\log n \log \log n)$ & $\mathcal{O}(n/\log^2 n)$ & $\mathcal{O}(n/\log n)$ & $\mathcal{O}(n\log \log n)$\\
+  $0$ & $0$ & $\mathcal{O}(1)$ & $\mathcal{O}(n)$ & $\mathcal{O}(n)$ & $\mathcal{O}(n)$\\ \midrule
+  Total & & & & & $\mathcal{O}(n\log \log n)$\\
   \bottomrule
 \end{tabular}
 \end{table*}
 
-The analysis bounds invocations of \textsc{Process}, but not those of \textsc{Update}. However, the analysis for \textsc{Update} follows the same direction and also yields a $O(n \log \log n)$ time bound.
+The analysis bounds invocations of \textsc{Process}, but not those of \textsc{Update}. However, the analysis for \textsc{Update} follows the same direction and also yields a $\mathcal{O}(n \log \log n)$ time bound.
 
 \subsubsection{Linear time}
 \label{sec:linear-time}
@@ -562,9 +581,25 @@ To improve the running time to linear, we must use a recursive subdivision. Let 
 \]
 with $\alpha_0 = 0$, and $\alpha_{h(G)} = 1$.
 
-To achieve linear time, we define the $r_i$ inductively by $r_0 = 1$, and $r_{i+1} = 16^{r_i^{1/6}}$. This defines a division into roughly $\log^{*} n$ levels. The algorithm is as algorithm~\ref{alg:linear} with \textsc{Process} and \textsc{Update} as given there.
+To achieve linear time, we define the $r_i$ inductively by $r_0 = 1$, and $r_{i+1} = 16^{r_i^{1/6}}$. This defines a division into roughly $\log^{*} n$ levels. The algorithm is given above, but we repeat it here for clarity:
 
-The correctness proof did not rely on the $\alpha_i$ or $r_i$ and follows as in section~\ref{sec:correctness}. Using a very similar argument as in section~\ref{sec:analysis}, it is possible to show that the linear time bound holds for this choice of parameters, though the recursion is more involved.
+\begin{algorithm}
+  \begin{algorithmic}[1]
+    \State Find recursive subdivision $R(G), R(P_i), \ldots, R(uv)$
+    \State Allocate queue $Q$ for each region
+    \State $d(v) \gets \infty, \forall v$
+    \State $d(s) \gets 0$
+    \ForAll {$sv \in E(G)$}
+      \State \Call{Update}{$R(sv),sv,0$}
+    \EndFor
+    \While {$Q(R(G)).minKey() < \infty$}
+      \State \Call{Process}{$R(G)$}
+    \EndWhile
+  \end{algorithmic}
+\end{algorithm}
+
+
+The correctness proof did not rely on the $\alpha_i$ or $r_i$ and follows from section~\ref{sec:correctness}. Using a very similar argument as in section~\ref{sec:analysis}, it is possible to show that the linear time bound holds for this choice of parameters, though the recursion is more involved.
 
 \section{Single source shortest paths with arbitrary edge weights}
 \label{sec:arbitr-edge-weights}
@@ -582,15 +617,17 @@ Given the separator theorem of Lipton and Tarjan~\cite{lipton1979separator}, div
 
 Let us now go more in depth into how the algorithms work, while still not touching the details, which we will touch in the next section. First of all, note that the vertex $s$ from which we want to find the distances might not be a boundary vertex, which will couse problems when we try to recurse. We can easily solve this, as if we have the distances from any other vertex, we can dene a price function which will make every edge positive and enable us to apply Dijkstra. We may therefore choose a boundary vertex. We now need to "glue" these the smallest distances we have. Note that we may glue only along the boundary cycle, i.e. any shortest path from $x$ to $y$ will have the following form: an inital and last segment, from x to the boundary cycle and from a vertex from the boundary cycle to $y$, and then a couple of other paths between vertices on the boundary cycle, paths which stay within one of the two parts. Therefore, it seems natural to try to compute the distances between vertices on the boundary (as they form the ``bulk'' of the $x-y$ path).
 
-We already have the distances between two vertices on the boundary within each of the two parts (for proving the first part an algorithm of Klein that does exactly this is used). In order to combine these we will use Bellman-Ford, although a little modified. Note that for a convex quadrangle $ABCD$ we have that $AC + BD \geq AB + CD$. This seems trivial, but note that the lengths can take the value of any distance function, so also of the shortest path! This means that if we order the vertices on the boundary cyclically, there is special structure to this distance function. We will make this formal by using Monge matrices (note the equivalence of $AB + CD \leq AC + BD$ and $a_{ij} + a_{kl} \geq a_{il} + a_{kj}$ if $i \leq k$ and $j \leq l$). By what we said earlier, we only need to find the distances from a vertex on boundary to all the other vertces, and we can yet again, using the distances between boundary vertices, do this by using a price function and Dijkstra. This is how the $O(n \log^2 n)$ algorithm works.
+We already have the distances between two vertices on the boundary within each of the two parts (for proving the first part an algorithm of Klein that does exactly this is used). In order to combine these we will use Bellman-Ford, although a little modified. Note that for a convex quadrangle $ABCD$ we have that $AC + BD \geq AB + CD$. This seems trivial, but note that the lengths can take the value of any distance function, so also of the shortest path! This means that if we order the vertices on the boundary cyclically, there is special structure to this distance function. We will make this formal by using Monge matrices (note the equivalence of $AB + CD \leq AC + BD$ and $a_{ij} + a_{kl} \geq a_{il} + a_{kj}$ if $i \leq k$ and $j \leq l$). By what we said earlier, we only need to find the distances from a vertex on boundary to all the other vertces, and we can yet again, using the distances between boundary vertices, do this by using a price function and Dijkstra. This is how the $\mathcal{O}(n \log^2 n)$ algorithm works.
 
-For the $\mathcal{O}(n \log^2 n/ \log \log n)$ algorithm, we need to make certain improvements. First of all, it is obvious that if we try using divide-and-conquer with only two subproblems we are most certain to fail, as there is no easy way of improving the steps in the previous algorithm to take less than $O(n \log n)$. For this, we will use the separator theorem of Fakcharoenphol and Rao~\cite{fakcharoenphol2001planar}. This, however, brings about problems we didn’t have to face before, the most complicated of which are the holes. Note that, however, the separator theorem assures many useful properties, one of which is the constant number of holes. This might enable using algorithms for every pair of holes within a region (where region is a part of the division). Also, there aren’t many boundary nodes per region.
+For the $\mathcal{O}(n \log^2 n/ \log \log n)$ algorithm, we need to make certain improvements. First of all, it is obvious that if we try using divide-and-conquer with only two subproblems we are most certain to fail, as there is no easy way of improving the steps in the previous algorithm to take less than $\mathcal{O}(n \log n)$. For this, we will use the separator theorem of Fakcharoenphol and Rao~\cite{fakcharoenphol2001planar}. This, however, brings about problems we didn’t have to face before, the most complicated of which are the holes. Note that, however, the separator theorem assures many useful properties, one of which is the constant number of holes. This might enable using algorithms for every pair of holes within a region (where region is a part of the division). Also, there aren’t many boundary nodes per region.
 
 
 \section{Conclusion}
 \label{sec:conclusion}
 
-From integrated circuit design to network design to path-planning in robotics, planar graphs frequently occur in day-to-day life. By understanding the unique properties of planar graphs and how to exploit their structure, it is possible to address many of the common issues prevalent in many domains. The fundamental step in many planar graph algorithms is to find a smaller subset of the problem to solve first for a divide-and-conquer approach. Planar graph separators enable complex problems, such as shortest path, to be solved in an efficient manner. Expanding to application, shortest path represents one of the many canonical algorithms that can be applied to planar graphs. Like in their non-planar counterparts, shortest path can be used to address many real-world problems such as robotic navigation. Adding in negative edge costs allows for richer and more complex problems, such as shipping commodities through many different channels where profit effects may result in negative costs. In this paper, we have presented the intuition behind algorithms for planar graph separators, non-negative single-source shortest path, and negative weight shortest path in planar graphs. We hope we have shown more clearly that restricting ourselves to certain classes of graphs can lead to beautiful, yet simple, solutions to many common problems.
+From integrated circuit design to network design to path-planning in robotics, planar graphs frequently occur in day-to-day life. By understanding the unique properties of planar graphs and how to exploit their structure, it is possible to address many of the common issues prevalent in many domains. The fundamental step in many planar graph algorithms is to find a smaller subset of the problem to solve first for a divide-and-conquer approach. Planar graph separators enable complex problems, such as shortest path, to be solved in an efficient manner. Expanding to application, shortest path represents one of the many canonical algorithms that can be applied to planar graphs. Like in their non-planar counterparts, shortest path can be used to address many real-world problems such as robotic navigation. Adding in negative edge costs allows for richer and more complex problems, such as shipping commodities through many different channels where profit effects may result in negative costs.
+
+In this paper, we have presented the intuition behind algorithms for planar graph separators, non-negative single-source shortest path, and negative weight shortest path in planar graphs. We hope we have shown more clearly that restricting ourselves to certain classes of graphs can lead to beautiful, yet simple, solutions to many common problems.
 
 \bibliographystyle{plain}
 \bibliography{project}
