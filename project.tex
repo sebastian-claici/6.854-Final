@@ -8,7 +8,7 @@
 
 \usepackage{booktabs}
 \usepackage{framed}
-\usepackage[left=22mm,right=22mm,top=25mm,bottom=25mm]{geometry}
+\usepackage[left=20mm,right=20mm,top=25mm,bottom=22mm]{geometry}
 \usepackage{parskip}
 
 % Figures
@@ -48,7 +48,7 @@
 \maketitle
 
 \begin{abstract}
-  We survey advances in single-source shortest paths algorithms on the special case of planar graphs. For the case of non-negative edge weights, we show $\mathcal{O}(n\log \log n)$ algorithm and provide intuition for an optimal $\mathcal{O}(n)$ algorithm. For arbitrary edge weights, we give an $\mathcal{O}(n\log^2 n)$ algorithm and show how to modify it to achieve $\mathcal{O}(n\log^2 n/\log \log n)$.
+  We survey advances in single-source shortest paths algorithms on the special case of planar graphs. For the case of non-negative edge weights, we show n$\mathcal{O}(n\log \log n)$ algorithm and provide intuition for an optimal $\mathcal{O}(n)$ algorithm. For arbitrary edge weights, we give an $\mathcal{O}(n\log^2 n)$ algorithm and show how to modify it to achieve $\mathcal{O}(n\log^2 n/\log \log n)$.
 \end{abstract}
 
 \section{Introduction}
@@ -176,10 +176,24 @@ A stereographic projection can be used to embed nodes on a plane onto a sphere w
   \label{fig:stereo}
 \end{figure}
 
-Finally, specifically for shortest paths algorithms, we note the following:\\
+Specifically for shortest paths algorithms, we note the following:\\
 
 \begin{theorem}
   A planar graph on $n$ nodes can be transformed by adding $\mathcal{O}(n)$ nodes and edges into another planar graph such that every node has in- and out-degree at most $2$.
+\end{theorem}
+
+Klein's algorithm~\cite{klein2005multiple} is used in the negative edge weights algorithm:\\
+
+\begin{theorem}[Klein's algorithm]
+Given a planar graph $G$ with outer cycle $C$, one can find an implicit representation of the shortest-path trees for every vertex on $C$ in $\mathcal{O}(n\log n)$ time, where $n=|G|$. Moreover, distance queries can be answered in $\mathcal{O}(\log n)$ time.
+\end{theorem}
+
+Finally, we need a little linear algebra. A matrix $A$ is called totally monotone if $i<i'$, $j<j'$ and $a_{ij}\leq a_{ij'}$ implies $a{i'j}\leq a{i'j'}$. A matrix $A$ is called Monge convex if $i<i'$ and $j<j'$ imply $a_{ij}+a{i'j'}\geq a_{ij'}+a{i'j}$. Note that a Monge convex matrix is also totally monotone. A monotone staircase matrix is a matrix where each row has entries on columns $1,2,\ldots, i$ for some $i$, and total monotonously holds within the staircase.
+
+ The following theorem is due to Klawe and Kleitman~\cite{klawe1990almost}:\\
+
+\begin{theorem}
+Finding all row-minima in totally monotone $n$x$m$ ($m$ number of columns, $n$ number of rows) staircase matrices takes $\mathcal{O}(m\alpha(n)+n)$ time. Here $\alpha(n)$ is the inverse Ackermann function.
 \end{theorem}
 
 \section{Planar Graph Separators}
@@ -542,9 +556,9 @@ To improve the running time to linear, we must use a recursive subdivision. Let 
 \]
 with $\alpha_0 = 0$, and $\alpha_{h(G)} = 1$.
 
-To achieve linear time, we define the $r_i$ inductively by $r_0 = 1$, and $r_{i+1} = 16^{r_i^{1/6}}$. This defines a division into roughly $\log^{*} n$ levels. The algorithm is given above, but we repeat it here for clarity:
+To achieve linear time, we define the $r_i$ inductively by $r_0 = 1$, and $r_{i+1} = 16^{r_i^{1/6}}$. This defines a division into roughly $\log^{*} n$ levels. The algorithm is given above, but we repeat it here for clarity.
 
-\begin{algorithm}
+\begin{algorithm}[!htb]
   \begin{algorithmic}[1]
     \State Find recursive subdivision $R(G), R(P_i), \ldots, R(uv)$
     \State Allocate queue $Q$ for each region
@@ -642,7 +656,7 @@ This is illustrated in figure~\ref{fig:long-path-b}.
     \includegraphics[width=.4\textwidth]{sssp-negative-two}
     \label{fig:long-path-b}
   }
-  \caption{Path between two boundaries snakes between $G_0$ and $G_1$.}
+  \caption{Boundary distances on a graph $G$ decomposed into an inside and outside region. (a) Blue line shows shortest path between $r$ and $v$ in $G_1$, while red line shows shortest $r$ to $v$ path in $G_0$. (b) True shortest $r$ to $v$ path may snake in and out of $G_0$ and $G_1$. From~\cite{klein2010shortest}.}
   \label{fig:long-path}
 \end{figure}
 
@@ -715,7 +729,7 @@ where $|G_0|, |G_1|\leq 2|G|/3$. We will show that $T(G) \leq Cn \log^2 n$ for s
 \subsection{Improvement to $\mathcal{O}(n\log^2 n/\log \log n)$}
 \label{sec:impr-mathc-nlog}
 
-The main idea that leads to a $\mathcal{O}(\log \log n)$ speed-up is to use $r$ regions in the subdivision instead of just $2$. The algorithm is identical to the previous one, as are most of the correctness proofs. The one stage which requires more complicated mathematical machinery is computing single-source inter-part boundary distances, as there may be holes to deal with, and we may not be able to sort nodes in trigonometric order. We note that this problem can be solved in $\mathcal{O}(nr\alpha(n))$ time where $\alpha(n)$ is the inverse Ackermann function.
+The main idea that leads to a $\mathcal{O}(\log \log n)$ speed-up is to use $r$ regions in the subdivision instead of just $2$. The algorithm is identical to the previous one, as are most of the correctness proofs. The one stage which requires more complicated mathematical machinery is computing single-source inter-part boundary distances, as there may be holes to deal with, and we may not be able to sort nodes in trigonometric order. We note that this problem can be solved in $\mathcal{O}(nr\alpha(n))$ time using the algorithm described in~\cite{klawe1990almost}.
 
 Following along the lines of section~\ref{sec:analysis-neg}, the time bound for stages 2 through 5 is $\mathcal{O}(n \log n + nr \alpha(n))$. The depth of the recursion will be $\log n/ \log r$ which yields a total runtime of
 \[
