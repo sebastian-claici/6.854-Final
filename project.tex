@@ -8,7 +8,7 @@
 
 \usepackage{booktabs}
 \usepackage{framed}
-\usepackage{fullpage}
+\usepackage[left=22mm,right=22mm,top=25mm,bottom=25mm]{geometry}
 \usepackage{parskip}
 
 % Figures
@@ -636,7 +636,7 @@ This is illustrated in figure~\ref{fig:long-path-b}.
   \centering
   \subfloat[]{
     \includegraphics[width=.4\textwidth]{sssp-negative-one}
-    \label{fig-long-path-a}
+    \label{fig:long-path-a}
   }\hfil
   \subfloat[]{
     \includegraphics[width=.4\textwidth]{sssp-negative-two}
@@ -702,18 +702,26 @@ Let $(u,v)$ be an edge of $G_i'$. We have that $v\neq r'$, so $\phi(v) = d_{G_i}
 
 We can now apply Dijkstra to find the inter-part distances. The running time of this stage is $O(n \log n)$.
 
-\subsubsection{Time bounds}
+\subsubsection{Analysis}
+\label{sec:analysis-neg}
 
 From the preceding analysis, it is clear that the time required to process the whole graph $T(G)$ can be written as 
 \[
   T(G) = T(G_0) + T(G_1) + \mathcal{O}(|G| \log |G|)
 \]
-where $|G_0|, |G_1|\leq 2|G|/3$. We will show that $T(G) \leq Cn \log^2 n$ for some large enough $C$. Note that the function $x\log x + (a-x)\log (a-x)$ is decreasing on $[0,a/2]$ and increasing on $[a/2,a]$, so the maximum of $T(G_0)+T(G_1)$ occurs when $|G_0|$ and $|G_1|$ are as far apart as possible. We can suppose that $|G_0|+|G_1| = n$, as the extra terms would be $\mathcal{O}(\sqrt{n})$, and would only add an $\mathcal{O}(\sqrt{n}\log^2 n)$ factor to $T(G)$. Therefore, $T(G)\leq C(n/3\log^2 n/3 + 2n/3\log^2 2n/3) + \mathcal{O}(n\log n)$. But for $C$ large enough, the $n \log^2 n$ terms dominate, so we indeed get $T(G) = \mathcal{O}(n\log^2 n)$.
+where $|G_0|, |G_1|\leq 2|G|/3$. We will show that $T(G) \leq Cn \log^2 n$ for some large enough $C$. Note that the function $x\log x + (a-x)\log (a-x)$ is decreasing on $[0,a/2]$ and increasing on $[a/2,a]$, so the maximum of $T(G_0)+T(G_1)$ occurs when $|G_0|$ and $|G_1|$ are as far apart as possible. We can suppose that $|G_0|+|G_1| = n$, as the extra terms would be $\mathcal{O}(\sqrt{n})$, and would only add an $\mathcal{O}(\sqrt{n}\log^2 n)$ factor to $T(G)$. Therefore, $T(G)\leq C(n/3\log^2 n/3 + 2n/3\log^2 2n/3) + \mathcal{O}(n\log n)$. But for $C$ large enough, the $n \log^2 n$ terms dominate, so we indeed obtain $T(G) = \mathcal{O}(n\log^2 n)$.
 
 
 \subsection{Improvement to $\mathcal{O}(n\log^2 n/\log \log n)$}
 \label{sec:impr-mathc-nlog}
 
+The main idea that leads to a $\mathcal{O}(\log \log n)$ speed-up is to use $r$ regions in the subdivision instead of just $2$. The algorithm is identical to the previous one, as are most of the correctness proofs. The one stage which requires more complicated mathematical machinery is computing single-source inter-part boundary distances, as there may be holes to deal with, and we may not be able to sort nodes in trigonometric order. We note that this problem can be solved in $\mathcal{O}(nr\alpha(n))$ time where $\alpha(n)$ is the inverse Ackermann function.
+
+Following along the lines of section~\ref{sec:analysis-neg}, the time bound for stages 2 through 5 is $\mathcal{O}(n \log n + nr \alpha(n))$. The depth of the recursion will be $\log n/ \log r$ which yields a total runtime of
+\[
+  \mathcal{O}\left(\frac{\log n}{\log r}(n \log n + nr\alpha(n))\right) = \mathcal{O}\left(\frac{n\log^2 n}{\log r} + \frac{nr\alpha(n) \log n}{\log r}\right).
+\]
+If we choose $p=\log n/\alpha(n)$, the $\mathcal{O}(n\log^2 n/\log \log n)$ bound follows.
 
 \section{Conclusion}
 \label{sec:conclusion}
