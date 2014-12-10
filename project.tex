@@ -1,4 +1,5 @@
 
+
 %%% Local Variables:
 %%% mode: latex
 %%% TeX-master: t
@@ -180,18 +181,18 @@ Specifically for shortest paths algorithms, we note the following:\\
   A planar graph on $n$ nodes can be transformed by adding $\mathcal{O}(n)$ nodes and edges into another planar graph such that every node has in- and out-degree at most $2$.
 \end{theorem}
 
-Klein's algorithm~\cite{klein2005multiple} is used in the negative edge weights algorithm:\\
+Klein's algorithm is used in the negative edge weights algorithm:\\
 
-\begin{theorem}[Klein's algorithm]
+\begin{theorem}[Klein's algorithm~\cite{klein2005multiple}]
 Given a planar graph $G$ with outer cycle $C$, one can find an implicit representation of the shortest-path trees for every vertex on $C$ in $\mathcal{O}(n\log n)$ time, where $n=|G|$. Moreover, distance queries can be answered in $\mathcal{O}(\log n)$ time.
 \end{theorem}
 
-Finally, we need a little linear algebra. A matrix $A$ is called totally monotone if $i<i'$, $j<j'$ and $a_{ij}\leq a_{ij'}$ implies $a{i'j}\leq a{i'j'}$. A matrix $A$ is called Monge convex if $i<i'$ and $j<j'$ imply $a_{ij}+a{i'j'}\geq a_{ij'}+a{i'j}$. Note that a Monge convex matrix is also totally monotone. A monotone staircase matrix is a matrix where each row has entries on columns $1,2,\ldots, i$ for some $i$, and total monotonously holds within the staircase.
+Finally, we need a little linear algebra. A matrix $A$ is called totally monotone if $i<i'$, $j<j'$ and $a_{ij}\leq a_{ij'}$ implies $a_{i'j}\leq a_{i'j'}$. A matrix $A$ is called Monge convex if $i<i'$ and $j<j'$ imply $a_{ij}+a{i'j'}\geq a_{ij'}+a{i'j}$. Note that a Monge convex matrix is also totally monotone. A monotone staircase matrix is a matrix where each row has entries on columns $1,2,\ldots, i$ for some $i$, and total monotonicity holds within the staircase.
 
  The following theorem is due to Klawe and Kleitman~\cite{klawe1990almost}:\\
 
 \begin{theorem}
-Finding all row-minima in totally monotone $n$x$m$ ($m$ number of columns, $n$ number of rows) staircase matrices takes $\mathcal{O}(m\alpha(n)+n)$ time. Here $\alpha(n)$ is the inverse Ackermann function.
+Finding all row-minima in totally monotone $n\times m$ staircase matrices takes $\mathcal{O}(m\alpha(n)+n)$ time. Here $\alpha(n)$ is the inverse Ackermann function.
 \end{theorem}
 
 \section{Planar Graph Separators}
@@ -285,7 +286,7 @@ A suitable $r$-division is shown in figure~\ref{fig:rsep}.
 
 \begin{figure}[!htb]
     \centering
-    \includegraphics[width=.5\textwidth]{rsep}
+    \includegraphics[width=.4\textwidth]{rsep}
     \caption{Planar graph separated into $r$ regions. From~\cite{federickson1987fast}.}
     \label{fig:rsep}
 \end{figure}
@@ -744,6 +745,7 @@ From integrated circuit design to network design to path-planning in robotics, p
 
 In this paper, we have presented the intuition behind algorithms for planar graph separators, non-negative single-source shortest path, and negative weight shortest path in planar graphs. We hope we have shown more clearly that restricting ourselves to certain classes of graphs can lead to beautiful, yet simple, solutions to many common problems.
 
+\clearpage
 \bibliographystyle{plain}
 \bibliography{project}
 \end{document}
