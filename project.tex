@@ -18,6 +18,7 @@
 % Maths
 \usepackage{amsmath,amssymb,amsthm}
 
+\newtheorem{definition}{Definition}[section]
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{corollary}{Corollary}[theorem]
 \newtheorem{lemma}[theorem]{Lemma}
@@ -50,31 +51,31 @@
 
 \begin{abstract}
 
-  We survey advances in single-source shortest paths algorithms on the special case of planar graphs. For the case of non-negative edge weights, we show n$\mathcal{O}(n\log \log n)$ algorithm and provide intuition for an optimal $\mathcal{O}(n)$ algorithm. For arbitrary edge weights, we give an $\mathcal{O}(n\log^2 n)$ algorithm and show how to modify it to achieve $\mathcal{O}(n\log^2 n/\log \log n)$.
+  We survey advances in single-source shortest paths algorithms on the special case of planar graphs. For non-negative edge weights, we show an $\mathcal{O}(n\log \log n)$ algorithm and provide intuition for an optimal $\mathcal{O}(n)$ algorithm. For arbitrary edge weights, we give an $\mathcal{O}(n\log^2 n)$ algorithm and show how to modify it to achieve $\mathcal{O}(n\log^2 n/\log \log n)$.
 
 \end{abstract}
 
 \section{Introduction}
 \label{sec:introduction}
 
-Finding shortest paths in graphs is one of the oldest combinatorial optimization problems. At least in the sense of path finding, there are references dating back to the late 1800's~\cite{wiener1873ueber}. The standard algorithm for single-source shortest paths on a graph with no negative edge weights is Dijkstra's algorithm~\cite{dijkstra1959note}. While for general graphs the problem has been effectively solved for decades, the special case where the graph is planar has seen a number of surprising developments in recent years. We enumerate these here, and detail them in later sections.
+Finding shortest paths in graphs is one of the oldest combinatorial optimization problems. At least in the sense of path finding, there are references dating back to the late 1800's~\cite{wiener1873ueber}. The standard algorithm for single-source shortest paths on a graph with no negative edge weights is Dijkstra's algorithm~\cite{dijkstra1959note}. While for general graphs the problem has been effectively solved for decades, the special case where the graph is planar has seen a number of surprising developments in recent years. 
 
 For directed graphs where the edge weights are non-negative, the first improvement over $\mathcal{O}(n\log n)$ came from Federickson who gave a $\mathcal{O}(n \sqrt{\log n}$) bound~\cite{federickson1987fast}. This was improved nearly a decade later by Henzinger et al.\ to linear time~\cite{henzinger1997faster}. We remark that for general \emph{undirected} graphs with positive edge weights, there are known linear time algorithms for single-source shortest paths in the RAM model~\cite{thorup1999undirected}.
 
-For directed graphs with arbitrary edge weights, recent developments greatly improve upon the naive $\mathcal{O}(n^2)$ performance of Bellman-Ford. In 2010, Klein, Mozes and Weimann gave a $\mathcal{O}(n \log^2 n)$ algorithm~\cite{klein2010shortest}, which was improved to $\mathcal{O}(n \log^2 n / \log \log n)$ shortly thereafter~\cite{mozes2010shortest}. Both algorithms make use of a $\mathcal{O}(n \log n)$ multiple-source shortest paths algorithm due to Klein~\cite{klein2005multiple}.
+For directed graphs with arbitrary edge weights, recent developments greatly improve upon the naive $\mathcal{O}(n^2)$ performance of Bellman-Ford. In 2010, Klein, Mozes and Weimann gave a $\mathcal{O}(n \log^2 n)$ algorithm~\cite{klein2010shortest}, which was improved to $\mathcal{O}(n \log^2 n / \log \log n)$ shortly thereafter~\cite{mozes2010shortest}.
 
-The goal of this paper is to provide intuition into some of the recent developments in planar graph theory. This paper is organized as follows: in section~\ref{sec:background} we provide background on the theorems we will need later on; in section~\ref{sec:graph-sep} we detail planar graph separators, which are used extensively in divide-and-conquer planar graph algorithms. In sections~\ref{sec:nonn-edge-weights}~and~\ref{sec:arbitr-edge-weights} we detail faster algorithms for single-source shortest paths in graphs with non-negative and  negative edge weights respectively.
+The goal of this paper is to provide intuition into some of the recent developments in planar graph theory. This paper is organized as follows: in section~\ref{sec:background} we provide background on the theorems we need later on; in section~\ref{sec:graph-sep} we detail planar graph separators, which are used extensively in divide-and-conquer planar graph algorithms. In sections~\ref{sec:nonn-edge-weights}~and~\ref{sec:arbitr-edge-weights} we detail faster algorithms for single-source shortest paths in graphs with non-negative respectively negative edge weights.
 
 \section{Background}
 \label{sec:background}
 
-Planar graphs are graphs that can be drawn in the two-dimensional Euclidean plane such that no two edges cross each other. Every drawing of a planar graph delineates several faces, one of which is unbounded and represents the ``outside'' of the graph; we call this face the infinite face, and denote it by $f_{\infty}$. The following theorems are used implicitly or explicitly throughout the paper.\\
+Planar graphs are graphs that can be drawn in two-dimensional Euclidean space such that no two edges cross each other. Every drawing of a planar graph delineates several faces, one of which is unbounded and represents the ``outside'' of the graph; we call this face the infinite face, and denote it by $f_{\infty}$. The following theorems are used implicitly or explicitly throughout the paper.\\
 
 \begin{theorem}[Jordan curve theorem]
   Let $C$ be any closed curve in the plane. Removal of $C$ divides the plane into exactly two connected regions, the ``inside'' and the ``outside'' of $C$.
 \end{theorem}
 
-An interesting proof of the Jordan curve theorem that uses the non-planarity of the complete bipartite graph on two sets of 3 edges ($K_{3,3}$ shown in figure~\ref{fig:kuratowski}b) was given in~\cite{thomassen1992jordan}.\\
+An interesting proof of the Jordan curve theorem that uses the non-planarity of the complete bipartite graph on two sets of 3 edges $K_{3,3}$ (shown in figure~\ref{fig:kuratowski}b) is given in~\cite{thomassen1992jordan}. Every planar graph has a boundary that separates the infinite face from the inside of the graph.\\
 
 \begin{theorem}[Euler's formula for planar graphs]
   If $n$ is the number of nodes, $m$ the number of edges, and $f$ the number of faces of a planar graph, the following formula holds:
@@ -86,7 +87,7 @@ An interesting proof of the Jordan curve theorem that uses the non-planarity of 
 From Euler's formula, we can quickly prove a bound on the number of edges in a planar graph:\\
 
 \begin{theorem}
-  Any $n$-vertex planar graph with $n \geq 3$ contains no more than $3n-6$ edges.\\
+  Any $n$-node planar graph with $n \geq 3$ contains no more than $3n-6$ edges.\\
 \end{theorem}
 
 \begin{theorem}[Kuratowski's theorem]
@@ -138,6 +139,9 @@ An in-depth discussion of Kuratowski's theorem and a short proof are found in~\c
   \label{fig:kuratowski}
 \end{figure}
 
+\begin{definition}
+  The dual of a planar graph $G$ is a graph that has a node for each face of $G$ and an edge joining two neighboring faces for each edge in $G$.\\
+\end{definition}
 
 \begin{theorem}
   Every planar graph can be embedded without edge crossings on a sphere. As a corollary, every node $v$ of a planar graph can be embedded on the boundary of the infinite face $f_{\infty}$.
@@ -181,10 +185,10 @@ Specifically for shortest paths algorithms, we note the following:\\
   A planar graph on $n$ nodes can be transformed by adding $\mathcal{O}(n)$ nodes and edges into another planar graph such that every node has in- and out-degree at most $2$.
 \end{theorem}
 
-Klein's algorithm is used in the negative edge weights algorithm:\\
+Klein's multiple source shortest paths algorithm is used in the negative edge weights algorithm:\\
 
 \begin{theorem}[Klein's algorithm~\cite{klein2005multiple}]
-Given a planar graph $G$ with outer cycle $C$, one can find an implicit representation of the shortest-path trees for every vertex on $C$ in $\mathcal{O}(n\log n)$ time, where $n=|G|$. Moreover, distance queries can be answered in $\mathcal{O}(\log n)$ time.
+Given a planar graph $G$ with outer boundary $C$, one can find an implicit representation of the shortest-path trees for every vertex on $C$ in $\mathcal{O}(n\log n)$ time. Moreover, distance queries can be answered in $\mathcal{O}(\log n)$ time.
 \end{theorem}
 
 Finally, we need a little linear algebra. A matrix $A$ is called totally monotone if $i<i'$, $j<j'$ and $a_{ij}\leq a_{ij'}$ implies $a_{i'j}\leq a_{i'j'}$. A matrix $A$ is called Monge convex if $i<i'$ and $j<j'$ imply $a_{ij}+a{i'j'}\geq a_{ij'}+a{i'j}$. Note that a Monge convex matrix is also totally monotone. A monotone staircase matrix is a matrix where each row has entries on columns $1,2,\ldots, i$ for some $i$, and total monotonicity holds within the staircase.
@@ -201,7 +205,7 @@ Finding all row-minima in totally monotone $n\times m$ staircase matrices takes 
 % TODO Last point in Tarjan's algorithm
 % TODO Change node to node
 
-For large planar graphs, divide-and-conquer is a common approach to solving many kinds of problems. The divide-and-conquer paradigm centers around recursively dividing a problem into two or more smaller subproblems of the same type until they can be solved directly. One of the core problems in divide-and-conquer algorithms is finding a way to effectively and efficiently divide the problem space into smaller subspaces. The base for this recursion case is when the recursion reaches a subspace that contains fewer than some set number of nodes. The results at the lowest level are then rolled back up through the recursion to give the final answer.
+For large planar graphs, divide-and-conquer is a common approach to solving many kinds of problems. The divide-and-conquer paradigm centers around recursively dividing a problem into two or more smaller subproblems of the same type until they can be solved directly. One of the core problems in divide-and-conquer algorithms is finding a way to effectively and efficiently divide the problem space into smaller subspaces. The base case for this recursion is when we reach a subspace that contains fewer than some set number of nodes. The results at the lowest level are then rolled back up through the recursion to give the final answer.
 
 In planar graphs, one method of dividing the graph into distinct regions is to remove a small set of nodes that bridge together the regions. By removing a small group of nodes, referred to as the separator, the nodes can be broken into two disjoint sets. The goal of finding the separator is to minimize the number of nodes required to separate the graph.
 
@@ -212,9 +216,9 @@ Many methods for finding separators in planar graphs take a two-step approach. F
 
 \begin{lemma}
     \label{lemma:separator}
-    for any planar graph $G = (V,E)$ on $n = |V|$ nodes, and for any weight function $w: V \rightarrow \mathbb{R}^+$, it is possible to partition the nodes of the graph into three sections $A, B$ and $S$ such that
+    For any planar graph $G = (V,E)$ on $n = |V|$ nodes, and for any weight function $w: V \rightarrow \mathbb{R}^+$, it is possible to partition the nodes of the graph into three sections $A, B$ and $S$ such that
     \begin{itemize}
-        \item $w(A), w(B) \leq \alpha \cdot w(V)$ for some $\alpha \in (0,1)$
+        \item $w(A), w(B) \leq 2/3 \cdot w(V)$. 
 
         \item There are no edges between nodes in $A$ and nodes in $B$.
 
@@ -222,14 +226,16 @@ Many methods for finding separators in planar graphs take a two-step approach. F
     \end{itemize}
 \end{lemma}
 
-For a root node $r$, we can build a spanning tree of the graph $G$ that has depth $d$. We define $G^*$ as the dual of the triangulated version of $G$. To triangulate a graph, we add extra edges to the graph such that every face of the graph has no more than three edges. Taking the dual of the tree means to create a new graph that has a node for each face in the original graph, and an edge between any two faces that share a boundary edge. From $G^*$, we can obtain the spanning tree $T^*$. With this tree, every non-tree edge $e$ defines a fundamental cycle $C(e)$ within $G$. A fundamental cycle is a distinct cycle created when you add any non-tree edge from a graph to that graph's spanning tree. Since the depth of $T^*$ is at most $d$, we know that $|C(e)| \leq 2d + 1$. However, because the diameter of $G$ may be large, we want to reduce it so that we can constrain $|C(e)| \leq \sqrt{n}$. By constraining $G$, we can constrain the size of the separator nodes, and reduce the number of nodes removed in separating the graph.
+An example weight function is $w(v) = 1/n$ for all nodes $v$. This splits $G$ into two regions each containing at most two thirds of the nodes.
 
-Central to developing a partition of the original planar graph is the ability to divide that graph into levels. Given some $n$-node planar graph $G$ with nonnegative node costs, it is possible to partition the nodes of the graph based on their distance from a node $v$. One way of defining this distance is the distance from $v$ in a breadth-first search from $v$. Given the partitioning, define $L(l)$ as the number of nodes on the level $l$. The levels range from $0$ to $r$ where $r$ is the maximum distance from $v$ to any node in the graph. For the algorithm to work, an additional empty level must be added at $r+1$.
+For a node $v$, we can build a spanning tree of the graph $G$ that has depth $r$. We define $G^*$ as the dual of the triangulated version of $G$. To triangulate a graph, we add extra edges to the graph such that every face of the graph has no more than three edges. From $G^*$, we can obtain the spanning tree $T^*$. With this tree, every non-tree edge $e$ defines a cycle $C(e)$ within $G$. Since the depth of $T^*$ is at most $d$, we know that $|C(e)| \leq 2d + 1$. However, because the diameter of $G$ may be large, we want to reduce it so that we can constrain $|C(e)| \leq \sqrt{n}$. By constraining $G$, we can constrain the size of the separator nodes, and reduce the number of nodes removed in separating the graph.
+
+Central to developing a partition of the original planar graph is the ability to divide that graph into levels. Given some $n$-node planar graph $G$ with nonnegative node costs, it is possible to partition the nodes of the graph based on their distance from a node $v$. One way of defining this distance is the distance from $v$ in a breadth-first search from $v$. Given the partitioning, define $L(l)$ as the number of nodes on level $l$. The levels range from $0$ to $r$ where $r$ is the maximum distance from $v$ to any node in the graph. For the algorithm to work, an additional empty level must be added at $r+1$.
 
 The algorithm is as follows:
 \begin{enumerate}
 
-    \item Find the most costly (highest weight) component in the graph and run a depth-first search from this node. This calculates the level of each node in the graph which is defined as the number of edges traversed from $v$. This step can be performed in $\mathcal{O}(n)$.
+    \item Find the most costly (highest weight) component in the graph and run a depth-first search from this node. This calculates the level of each node in the graph which is defined as the number of edges traversed from $v$. 
 
     \item Find the maximum depth $r$ in the level tree, and add an additional level at $r+1$ that contains no nodes. This step can be performed in $\mathcal{O}(d)$.
 
@@ -237,17 +243,16 @@ The algorithm is as follows:
     \[
     \sum_{i \leq i_0} |L_i(v)| \geq \frac{n}{2} \quad \text{and}\quad \sum_{i \geq i_0} |L_i(v)| \geq \frac{n}{2}.
     \]
-    This step can be performed in $\mathcal{O}(n)$.
 
     \item Find levels $i_- \leq i_0 \leq i_+$ such that the number of nodes on levels $i_-$ and $i_+$ is less than $\sqrt{n}$.
     \begin{itemize}
         \item Start from the median node containing level $i_0$ and increase $i_+$ as well as decrease $i_-$ until $|L_{i_-}|,|L_{i_+}| \leq \sqrt{n}$
 
-        \item Because each section can only contain half of the nodes since $I_0$ is the median level, we can use the counting argument to state that $|i_0 - i_-|,|i_+ - i_0| \leq \frac{\sqrt{n}}{2}$
+        \item Because each section can only contain half of the nodes since $I_0$ is the median level, we can use a counting argument to state that $|i_0 - i_-|,|i_+ - i_0| \leq \frac{\sqrt{n}}{2}$
 
         \item This gives a separator $|L_{i_-} \cup L_{i_+}| \leq 2 \sqrt{n}$, which we can return if the grouping of $L_{< i_-}$, $L_{> i_+}$, and $L_{i_-,i_+}$ is balanced.
     \end{itemize}
-    If the grouping is not balanced, continue to step $4$.
+    If the grouping is not balanced, continue to step $5$.
 
     \item Form a condensed graph $G^{'}$ by deleting  all edges in $L_{\geq i_+}$, and contracting all edges in $L_{\leq i_-}$ into a super node $v$ that is connected to all nodes in $L_{i_- + 1}$.
 
@@ -276,7 +281,7 @@ Miller showed an alternative method for separating a planar graph into two secti
 \subsection{r-Subdivision}
 \label{sec:graph-sep-rsub}
 
-A division into $2$ regions is not useful for a divide-and-conquer approach, but the concept can be expanded further to develop a useful approach. Fortunately, we can achieve an $r$-segmentation of the graph into $\Theta \left (\frac{n}{r} \right )$ regions, each with $\mathcal{O}(r)$ nodes, and separated by $\mathcal{O} \left (\frac{n}{\sqrt{r}} \right )$ boundary nodes, where the boundary nodes are those nodes that are connected to more than one subgraph. Federickson takes this definition a step further and defines a \textit{suitable} r-division of a planar graph as the r-division that satisfies two characteristics~\cite{federickson1987fast}:
+A division into $2$ regions is not useful for a divide-and-conquer approach, but the concept can be expanded further. We can achieve an $r$-segmentation of the graph into $\Theta \left (\frac{n}{r} \right )$ regions, each with $\mathcal{O}(r)$ nodes, and separated by $\mathcal{O} \left (\frac{n}{\sqrt{r}} \right )$ boundary nodes, where the boundary nodes are those nodes that are connected to more than one subgraph. Federickson takes this definition a step further and defines a \textit{suitable} r-division of a planar graph as the r-division that satisfies two conditions~\cite{federickson1987fast}:
 \begin{enumerate}
     \item Each boundary node is contained in at most three regions
 
@@ -304,7 +309,6 @@ We can do much better by using the ideas developed in section~\ref{sec:graph-sep
 \label{sec:simple-algorithm}
 
 A simple $\mathcal{O}(n\sqrt{\log n \log \log n})$ emerges beautifully from an $r$-division if we set $r = \log n/\log \log n$. The first step is to compute the single-source shortest paths for each boundary node in each region $R$. As customary, we use $s$ for the source node throughout this section.
-
 
 \begin{algorithm}[!htb]
   \refstepcounter{algorithm}
@@ -350,7 +354,7 @@ The second phase is an SSSP in a size $\mathcal{O}(n \frac{\sqrt{\log \log n}}{\
 \subsection{Recursive subdivisions}
 \label{sec:recursion}
 
-The results of section \ref{sec:simple-algorithm} improved upon Dijkstra's algorithm, but there is still room to do better. A recursive subdivision $\bar{r} = (r_0, \ldots, r_h)$ of a graph is a division in which the regions are subdivided recursively up to edges. A region at level $i$ is sub-divided into regions of size $r_{i-1}$. The regions at level $0$ are called atomic and contain only one edge $uv$.
+The results of section \ref{sec:simple-algorithm} improved upon Dijkstra's algorithm, but there is still room to do better. A recursive subdivision $\bar{r} = (r_0, \ldots, r_h)$ of a graph is a division in which the regions are subdivided recursively up to edges. A region at level $i$ is sub-divided into regions of size $r_{i-1}$. The regions at level $0$ are called atomic and contain only one edge $uv$. The regions on higher levels are nonatomic.
 
 For each region $R$, we maintain a priority queue $Q(R)$ that stores the subregions of $R$ if $R$ is nonatomic, or the single arc $uv$ is $R$ is atomic. We call an edge $uv$ \emph{active} if its head $v$ has a finite distance label $d(v)$, and \emph{inactive} if $d(v)$ is infinite. During execution, edges can change status from \emph{active} to \emph{inactive} several times. The algorithm ensures that for every region $R$, the minimum element of $Q(R)$ is the minimum label $d(v)$ over all edges $vw$ in $R$ that remain to be processed.
 
@@ -496,9 +500,9 @@ Intuitively, the \emph{charging invariant} says that the number of charges to an
 
  Let us first consider the number of pairs $(R,v)$ on each level to which we can charge truncated invocations to (recall that $v$ is an entry node into $R$):
 \begin{itemize}
-\item If $R$ has level $0$, then $R$ is charged by at most one level $0$ invocation. There are $\mathcal{O}(n)$ pairs $(R,v)$ on level $0$, and thus $\mathcal{O}(n)$ chargers.
-\item If $R$ has level $1$, the pair is charged by at most one level $1$ invocation and at most $\alpha_1 = \log n$ level $0$ invocations. There are $\mathcal{O}(n/\log^4n)\cdot O(\log^2 n)$ pairs on level $1$.
-\item If $R$ has level $2$, then the pair is charged by at most one level $2$ invocation, at most $\alpha_2 = 1$ level $1$ invocations, and at most $\alpha_2\alpha_1 = \log n$ level $0$ invocations. There is only one pair $(R,v)$ on level $2$, namely $(R_G,s)$.
+\item If $R$ has level $0$, then $R,v$ is charged by at most one level $0$ invocation. There are $\mathcal{O}(n)$ pairs $(R,v)$ on level $0$, and thus $\mathcal{O}(n)$ chargers.
+\item If $R$ has level $1$, then $R,v$ is charged by at most one level $1$ invocation and at most $\alpha_1 = \log n$ level $0$ invocations. There are $\mathcal{O}(n/\log^4n)\cdot O(\log^2 n)$ chargers on level $1$.
+\item If $R$ has level $2$, then $R,v$ is charged by at most one level $2$ invocation, at most $\alpha_2 = 1$ level $1$ invocations, and at most $\alpha_2\alpha_1 = \log n$ level $0$ invocations. There is only one charger $(R,v)$ on level $2$, namely $(R_G,s)$.
 \end{itemize}
 
 Let $s_i$ be the total number of invocations at level $i$ (truncated and non-truncated), and $t_i$ be the number of truncated chargers at level $i$.
