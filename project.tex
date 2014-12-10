@@ -191,7 +191,7 @@ Klein's multiple source shortest paths algorithm is used in the negative edge we
 Given a planar graph $G$ with outer boundary $C$, one can find an implicit representation of the shortest-path trees for every vertex on $C$ in $\mathcal{O}(n\log n)$ time. Moreover, distance queries can be answered in $\mathcal{O}(\log n)$ time.
 \end{theorem}
 
-Finally, we need a little linear algebra. A matrix $A$ is called totally monotone if $i<i'$, $j<j'$ and $a_{ij}\leq a_{ij'}$ implies $a_{i'j}\leq a_{i'j'}$. A matrix $A$ is called Monge convex if $i<i'$ and $j<j'$ imply $a_{ij}+a{i'j'}\geq a_{ij'}+a{i'j}$. Note that a Monge convex matrix is also totally monotone. A monotone staircase matrix is a matrix where each row has entries on columns $1,2,\ldots, i$ for some $i$, and total monotonicity holds within the staircase.
+Finally, we need a little linear algebra. A matrix $A$ is called totally monotone if $i<i'$, $j<j'$ and $a_{ij}\leq a_{ij'}$ implies $a_{i'j}\leq a_{i'j'}$. A matrix $A$ is called Monge convex if $i<i'$ and $j<j'$ imply $a_{ij}+a_{i'j'}\geq a_{ij'}+a_{i'j}$. Note that a Monge convex matrix is also totally monotone. A monotone staircase matrix is a matrix where each row has entries on columns $1,2,\ldots, i$ for some $i$, and total monotonicity holds within the staircase.
 
  The following theorem is due to Klawe and Kleitman~\cite{klawe1990almost}:\\
 
@@ -528,15 +528,8 @@ Let's look at the time spent per invocation at each level. We bound the time req
 \item At level $2$, queues are of size $\mathcal{O}(n/\log^4 n)$, so queue operations take $\mathcal{O}(\log n)$ time, and there are $\alpha_2 = 1$ calls to lower levels, for a total of $\mathcal{O}(\log n)$.
 \end{itemize}
 
-To get our total time bounds, we multiply the time per invocation with the number of invocations at each level, and add everything up.
-\begin{align*}
-  \text{Total} &= \mathcal{O}(\log n) \cdot \mathcal{O}(n/\log n) + \mathcal{O}(\log n \log \log n) \cdot \mathcal{O}(n/ \log n) + \mathcal{O}(1) \cdot \mathcal{O}(n) \\
-               &= \mathcal{O}(n \log \log n)
-\end{align*}
-The information is summarized in table~\ref{tab:process}.
 
-
-\begin{table*}[!h]\centering
+\begin{table*}[!b]\centering
 \caption{Time required for \textsc{Process} calls.}
 \label{tab:process}
 \ra{1.3}
@@ -549,6 +542,13 @@ The information is summarized in table~\ref{tab:process}.
   \bottomrule
 \end{tabular}
 \end{table*}
+
+To get our total time bounds, we multiply the time per invocation with the number of invocations at each level, and add everything up.
+\begin{align*}
+  \text{Total} &= \mathcal{O}(\log n) \cdot \mathcal{O}(n/\log n) + \mathcal{O}(\log n \log \log n) \cdot \mathcal{O}(n/ \log n) + \mathcal{O}(1) \cdot \mathcal{O}(n) \\
+               &= \mathcal{O}(n \log \log n)
+\end{align*}
+The information is summarized in table~\ref{tab:process}.
 
 The analysis bounds invocations of \textsc{Process}, but not those of \textsc{Update}. However, the analysis for \textsc{Update} follows the same direction and also yields a $\mathcal{O}(n \log \log n)$ time bound.
 
