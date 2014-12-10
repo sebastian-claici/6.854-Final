@@ -48,28 +48,24 @@
 \maketitle
 
 \begin{abstract}
-  We survey advances in single-source shortest paths algorithms on the special case of planar graphs. For the case of non-negative edge weights, we show $\mathcal{O}(n\log \log n)$ algorithm and provide intuition for an optimal $\mathcal{O}(n)$ algorithm. For arbitrary edge weights, we give an $\mathcal{O}(n\log^2 n)$ algorithm and show how to modify it to achieve $\mathcal{O}(n\log^2 n/\log \log n)$.
+  In this paper, we survey advances in single-source shortest paths algorithms on the special case of planar graphs. We begin exploring planar graph separators, a fundamental tool in using the divide-and-conquer approach, and then proceed into shortest path algorithms. For the case of non-negative edge weight shortest path, we show $\mathcal{O}(n\log \log n)$ algorithm and provide intuition for an optimal $\mathcal{O}(n)$ algorithm. For arbitrary edge weights, we give an $\mathcal{O}(n\log^2 n)$ algorithm and show how to modify it to achieve $\mathcal{O}(n\log^2 n/\log \log n)$.
 \end{abstract}
 
 \section{Introduction}
 \label{sec:introduction}
 
-Finding shortest paths in graphs is one of the oldest combinatorial optimization problems. At least in the sense of path finding, there are references dating back to the late 1800's~\cite{wiener1873ueber}. The standard algorithm for single-source shortest paths on a graph with no negative edge weights is Dijkstra's algorithm~\cite{dijkstra1959note}.
-
-While for general graphs the problem has been effectively solved for decades, the special case where the graph is planar has seen a number of surprising developments in recent years. We enumerate these here, and detail them in later sections.
+Finding shortest paths in graphs is one of the oldest combinatorial optimization problems. At least in the sense of path finding, there are references dating back to the late 1800's~\cite{wiener1873ueber}. The standard algorithm for single-source shortest paths on a graph with no negative edge weights is Dijkstra's algorithm~\cite{dijkstra1959note}. While for general graphs the problem has been effectively solved for decades, the special case where the graph is planar has seen a number of surprising developments in recent years. We enumerate these here, and detail them in later sections.
 
 For directed graphs where the edge weights are non-negative, the first improvement over $\mathcal{O}(n\log n)$ came from Federickson who gave a $\mathcal{O}(n \sqrt{\log n}$) bound~\cite{federickson1987fast}. This was improved nearly a decade later by Henzinger et al.\ to linear time~\cite{henzinger1997faster}. We remark that for general \emph{undirected} graphs with positive edge weights, there are known linear time algorithms for single-source shortest paths in the RAM model~\cite{thorup1999undirected}.
 
-For directed graphs with arbitrary edge weights, recent developments greatly improve upon the naive $\mathcal{O}(n^2)$ of Bellman-Ford. In 2010, Klein, Mozes and Weimann gave a $\mathcal{O}(n \log^2 n)$ algorithm~\cite{klein2010shortest}, which was improved to $\mathcal{O}(n \log^2 n / \log \log n)$ shortly thereafter~\cite{mozes2010shortest}. Both algorithms make use of a $\mathcal{O}(n \log n)$ multiple-source shortest paths algorithm due to Klein~\cite{klein2005multiple}.
+For directed graphs with arbitrary edge weights, recent developments greatly improve upon the naive $\mathcal{O}(n^2)$ performance of Bellman-Ford. In 2010, Klein, Mozes and Weimann gave a $\mathcal{O}(n \log^2 n)$ algorithm~\cite{klein2010shortest}, which was improved to $\mathcal{O}(n \log^2 n / \log \log n)$ shortly thereafter~\cite{mozes2010shortest}. Both algorithms make use of a $\mathcal{O}(n \log n)$ multiple-source shortest paths algorithm due to Klein~\cite{klein2005multiple}.
 
-The goal of this paper is to provide intuition into some of the recent developments in planar graph theory.
-
-This paper is organized as follows: in section~\ref{sec:background} we provide background on the theorems we will need later on; in section~\ref{sec:graph-sep} we detail planar graph separators, which are used extensively in divide-and-conquer planar graph algorithms. In sections~\ref{sec:nonn-edge-weights}~and~\ref{sec:arbitr-edge-weights} we detail faster algorithms for single-source shortest paths in graphs with non-negative, respectively negative edge weights.
+The goal of this paper is to provide intuition into some of the recent developments in planar graph theory. This paper is organized as follows: in section~\ref{sec:background} we provide background on the theorems we will need later on; in section~\ref{sec:graph-sep} we detail planar graph separators, which are used extensively in divide-and-conquer planar graph algorithms. In sections~\ref{sec:nonn-edge-weights}~and~\ref{sec:arbitr-edge-weights} we detail faster algorithms for single-source shortest paths in graphs with non-negative and  negative edge weights respectively.
 
 \section{Background}
 \label{sec:background}
 
-We assume the reader is familiar with basic graph theory. Planar graphs are graphs that can be drawn in Euclidean space such that no two edges cross each other. Every drawing of a planar graph delineates several faces, one of which is unbounded and represents the ``outside'' of the graph; we call this face the infinite face, and denote it by $f_{\infty}$. The following theorems are used implicitly or explicitly throughout the paper.\\
+Planar graphs are graphs that can be drawn in the two-dimensional Euclidean plane such that no two edges cross each other. Every drawing of a planar graph delineates several faces, one of which is unbounded and represents the ``outside'' of the graph; we call this face the infinite face, and denote it by $f_{\infty}$. The following theorems are used implicitly or explicitly throughout the paper.\\
 
 \begin{theorem}[Jordan curve theorem]
   Let $C$ be any closed curve in the plane. Removal of $C$ divides the plane into exactly two connected regions, the ``inside'' and the ``outside'' of $C$.
@@ -188,7 +184,7 @@ Finally, specifically for shortest paths algorithms, we note the following:\\
 % TODO Last point in Tarjan's algorithm
 % TODO Change node to node
 
-For large planar graphs, divide-and-conquer is a common approach to solving many kinds of problems. The core problem in divide-and-conquer problems is finding a way to divide the problem space into smaller spaces and recurse until we reach a subspace that is small enough to allow for effective computation. The base case is when the recursion reaches a subspace that contains fewer than some set number of nodes. The results at the lowest level are then rolled back up through the recursion to give the final answer. The key challenge is finding a way to divide the data set for processing.
+For large planar graphs, divide-and-conquer is a common approach to solving many kinds of problems. The divide-and-conquer paradigm centers around recursively dividing a problem into two or more smaller subproblems of the same type until they can be solved directly. One of the core problems in divide-and-conquer algorithms is finding a way to effectively and efficiently divide the problem space into smaller subspaces. The base for this recursion case is when the recursion reaches a subspace that contains fewer than some set number of nodes. The results at the lowest level are then rolled back up through the recursion to give the final answer.
 
 In planar graphs, one method of dividing the graph into distinct regions is to remove a small set of nodes that bridge together the regions. By removing a small group of nodes, referred to as the separator, the nodes can be broken into two disjoint sets. The goal of finding the separator is to minimize the number of nodes required to separate the graph.
 
@@ -202,69 +198,71 @@ Many methods for finding separators in planar graphs take a two-step approach. F
     for any planar graph $G = (V,E)$ on $n = |V|$ nodes, and for any weight function $w: V \rightarrow \mathbb{R}^+$, it is possible to partition the nodes of the graph into three sections $A, B$ and $S$ such that
     \begin{itemize}
         \item $w(A), w(B) \leq \alpha \cdot w(V)$ for some $\alpha \in (0,1)$
-        
+
         \item There are no edges between nodes in $A$ and nodes in $B$.
-        
+
         \item The size of the separator $S$ is small. In particular, we can achieve $|S| = \mathcal{O}(\sqrt{n})$.
     \end{itemize}
 \end{lemma}
 
-For a root node $r$, we can build a spanning tree of the graph $G$ that has depth $d$. We define $T^*$ as the dual tree of the triangulated version of $G$. To triangulate a graph, we add extra edges to the graph such that every face of the graph has no more than three edges. Taking the dual of the tree means to create a new graph that has a node for each face in the original graph, and an edge between any two faces that shared a boundary. From this tree, every non-tree edge $e$ defines a fundamental cycle $C(e)$. A fundamental cycle is a distinct cycle created when you add any non-tree edge from a graph to that graph's spanning tree. Since the depth of $T$ is at most $d$, we know that $|C(e)| \leq 2d + 1$. However, because the diameter of $G$ may be large, we want to reduce it so that we can constrain $|C(e)| \leq \sqrt{n}$. Central to developing this better partition is the ability to divide the planar graph into levels.
+For a root node $r$, we can build a spanning tree of the graph $G$ that has depth $d$. We define $G^*$ as the dual of the triangulated version of $G$. To triangulate a graph, we add extra edges to the graph such that every face of the graph has no more than three edges. Taking the dual of the tree means to create a new graph that has a node for each face in the original graph, and an edge between any two faces that share a boundary edge. From $G^*$, we can obtain the spanning tree $T^*$. With this tree, every non-tree edge $e$ defines a fundamental cycle $C(e)$ within $G$. A fundamental cycle is a distinct cycle created when you add any non-tree edge from a graph to that graph's spanning tree. Since the depth of $T^*$ is at most $d$, we know that $|C(e)| \leq 2d + 1$. However, because the diameter of $G$ may be large, we want to reduce it so that we can constrain $|C(e)| \leq \sqrt{n}$. By constraining $G$, we can constrain the size of the separator nodes, and reduce the number of nodes removed in separating the graph.
 
-Using a weight function allows for greater generality and applicability of the algorithm. Specifically, applying the weight evenly across the nodes is particularly useful. By giving each node a weight of $\frac{1}{n}$, $A$ will have at most $\frac{2}{3}$ of the nodes, $B$ will have at most $\frac{1}{3}$ of the nodes, and the separator will be at most $\sqrt{n}$ nodes.
-
-Given some $n$-node planar graph $G$ with nonnegative node costs, it is possible to partition the nodes of the graph based on their distance from a node $v$. One way of defining this distance is the distance from $v$ in a breadth-first search from $v$. Given the partitioning, define $L(l)$ as the number of nodes on the level $l$. The levels range from $0$ to $r$ where $r$ is the maximum distance from $v$ to any node in the graph. For the algorithm to work, an additional empty level must be added at $r+1$.
+Central to developing a partition of the original planar graph is the ability to divide that graph into levels. Given some $n$-node planar graph $G$ with nonnegative node costs, it is possible to partition the nodes of the graph based on their distance from a node $v$. One way of defining this distance is the distance from $v$ in a breadth-first search from $v$. Given the partitioning, define $L(l)$ as the number of nodes on the level $l$. The levels range from $0$ to $r$ where $r$ is the maximum distance from $v$ to any node in the graph. For the algorithm to work, an additional empty level must be added at $r+1$.
 
 The algorithm is as follows:
 \begin{enumerate}
-    
-    \item Find the most costly (highest weight) component in the graph and run a depth-first search from this graph. This calculates the level of each node in the graph. Find the maximum depth $r$ in the level tree, and add an additional level at $r+1$ that contains no nodes. This step can be performed in $\mathcal{O}(n)$.
-    
+
+    \item Find the most costly (highest weight) component in the graph and run a depth-first search from this node. This calculates the level of each node in the graph which is defined as the number of edges traversed from $v$. This step can be performed in $\mathcal{O}(n)$.
+
+    \item Find the maximum depth $r$ in the level tree, and add an additional level at $r+1$ that contains no nodes. This step can be performed in $\mathcal{O}(d)$.
+
     \item Find the level $i_0$ that contains the median node. This is the level where
     \[
     \sum_{i \leq i_0} |L_i(v)| \geq \frac{n}{2} \quad \text{and}\quad \sum_{i \geq i_0} |L_i(v)| \geq \frac{n}{2}.
     \]
-    This step can be performed in $\mathcal{O}(n)$.n
-    
-    \item Find levels $i_- \leq i_0 \leq i_+$ such that the number of nodes on levels $i_-$ and $i_+$ is less than $\sqrt{n}$. Note that any level
+    This step can be performed in $\mathcal{O}(n)$.
+
+    \item Find levels $i_- \leq i_0 \leq i_+$ such that the number of nodes on levels $i_-$ and $i_+$ is less than $\sqrt{n}$.
     \begin{itemize}
         \item Start from the median node containing level $i_0$ and increase $i_+$ as well as decrease $i_-$ until $|L_{i_-}|,|L_{i_+}| \leq \sqrt{n}$
-        
-        \item Because each section can only contain half of the nodes, we can use the counting argument to state that $|i_0 - i_-|,|i_+ - i_0| \leq \frac{\sqrt{n}}{2}$
-        
+
+        \item Because each section can only contain half of the nodes since $I_0$ is the median level, we can use the counting argument to state that $|i_0 - i_-|,|i_+ - i_0| \leq \frac{\sqrt{n}}{2}$
+
         \item This gives a separator $|L_{i_-} \cup L_{i_+}| \leq 2 \sqrt{n}$, which we can return if the grouping of $L_{< i_-}$, $L_{> i_+}$, and $L_{i_-,i_+}$ is balanced.
     \end{itemize}
     If the grouping is not balanced, continue to step $4$.
-    
+
     \item Form a condensed graph $G^{'}$ by deleting  all edges in $L_{\geq i_+}$, and contracting all edges in $L_{\leq i_-}$ into a super node $v$ that is connected to all nodes in $L_{i_- + 1}$.
-    
-    \item From the condensed graph $G^{'}$, create a fundamental cycle separator $C$
+
+    \item Create a fundamental cycle separator $C$ from the condensed graph $G^{'}$.
     \begin{itemize}
         \item Build a breadth-first tree from $v$. This tree will have depth $|i_+ - i_-| \leq \sqrt{n}$
-        
+
         \item Add edges to the tree such that each face (except $f_{\infty}$) is a triangle.
     \end{itemize}
-    
+
     \item Start with any non-tree edge $uv$, and walk along the BFS tree in both directions until a cycle is formed. This cycle is the current separator candidate. Determine which side of the cycle has greater weight and call it the ``inside''.
-    
+
     \item If the weight of the ``inside'' is larger than $2/3$, fix the cycle by changing $uv$ with another non-tree edge. We can ensure that the weight of the ``inside'' will only decrease during this process. Repeat this step until a suitable cycle separator has been found.
-    
+
     \item Using this separator, return $A$ and $B$ as some combination of interior$(C)$, exterior$(C)$, $L_{< i_-}$, and $L_{> i_+}$. $S$ can be returned as a combination of $L_{i_-}$, $L_{i_+}$, and $C$.
-    
+
 \end{enumerate}
+
+Using a weight function allows for greater generality and applicability of the algorithm. Specifically, applying the weight evenly across the nodes is particularly useful. By giving each node a weight of $\frac{1}{n}$, $A$ will have at most $\frac{2}{3}$ of the nodes, $B$ will have at most $\frac{1}{3}$ of the nodes, and the separator will be at most $\sqrt{n}$ nodes.
 
 \subsection{Miller's Algorithm}
 \label{sec:graph-sep-miller}
 
-Miller showed an alternative method for separating a planar graph into two sections with a separator region. He showed that every 2-connected, triangulated planar graph with $n$ nodes has a simple cycle $C$ of length at most $4\sqrt{n}$~\cite{miller1984finding}. Like Lipton and Tarjan's algorithm, Miller's algorithm works to reduce the diameter of the graph and then find the separator within the reduced-diameter graph. The key difference the methods is the way in which Miller reduces the diameter. Instead of looking for the median node, Miller searches for the heaviest subtree in the BFS tree. This is found by following the heaviest child until you reach a cycle $C_0$ with weight $> \frac{1}{2}$, but where all enclosed cycles have weight $< \frac{1}{2}$. From there, Miller finds the limits on the region by searching for the level $i_-$ higher in the BFS tree that has a boundary size of $\mathcal{O}(\sqrt{n})$, and the level $i_+$ lower in the BFS tree than $i_0$ that has  a boundary size of less than $\mathcal{O}(\sqrt{n})$.
+Miller showed an alternative method for separating a planar graph into two sections with a separator region. He showed that every 2-connected, triangulated planar graph with $n$ nodes has a simple cycle $C$ of length at most $4\sqrt{n}$~\cite{miller1984finding}. Like Lipton and Tarjan's algorithm, Miller's algorithm works by reducing the diameter of the graph and then finding the separator within the reduced-diameter graph. The key difference the methods is the way in which Miller reduces the diameter. Instead of looking for the median node, Miller searches for the heaviest subtree in the BFS tree. This is found by following the heaviest child in the spanning tree of the graph until you reach a cycle $C_0$ with weight greater than $\frac{1}{2}$, but where all enclosed cycles have weight less than $\frac{1}{2}$. From there, Miller finds the limits on the region by searching for the level $i_-$ higher in the BFS tree that has a boundary size of $\mathcal{O}(\sqrt{n})$, and the level $i_+$ lower in the BFS tree than $i_0$ that has  a boundary size of less than $\mathcal{O}(\sqrt{n})$.
 
 \subsection{r-Subdivision}
 \label{sec:graph-sep-rsub}
 
-A division into $2$ regions is not useful for a divide-and-conquer approach, but the concept can be expanded further to develop a useful approach. Fortunately, we can achieve an $r$-segmentation of the graph into $\Theta \left (\frac{n}{r} \right )$ regions, each with $\mathcal{O}(r)$ nodes, and separated by $\mathcal{O} \left (\frac{n}{\sqrt{r}} \right )$ boundary nodes. The boundary nodes are those nodes that are connected to more than one subgraph. Federickson takes this definition a step further and defines a \textit{suitable} r-division of a planar graph as the r-division that satisfies two characteristics~\cite{federickson1987fast}:
+A division into $2$ regions is not useful for a divide-and-conquer approach, but the concept can be expanded further to develop a useful approach. Fortunately, we can achieve an $r$-segmentation of the graph into $\Theta \left (\frac{n}{r} \right )$ regions, each with $\mathcal{O}(r)$ nodes, and separated by $\mathcal{O} \left (\frac{n}{\sqrt{r}} \right )$ boundary nodes, where the boundary nodes are those nodes that are connected to more than one subgraph. Federickson takes this definition a step further and defines a \textit{suitable} r-division of a planar graph as the r-division that satisfies two characteristics~\cite{federickson1987fast}:
 \begin{enumerate}
     \item Each boundary node is contained in at most three regions
-    
+
     \item Any region that is not connected consists of connected components, all of which share boundary nodes with exactly the same set of either one or two connected regions.
 \end{enumerate}
 A suitable $r$-division is shown in figure~\ref{fig:rsep}.
@@ -276,7 +274,13 @@ A suitable $r$-division is shown in figure~\ref{fig:rsep}.
     \label{fig:rsep}
 \end{figure}
 
+<<<<<<< Updated upstream
 Starting with the initial graph $G$, all of the nodes are in the interior region. A separator algorithm can then be applied to the graph with all of the node weights set to $\frac{1}{n}$. This will produce three sets: $A$, $B$, and $C$. From these two sets, we can infer two regions that have the node sets $A_1 \subseteq A \cup C$ and $A_2 \subseteq B \cup C$. These two node sets will have sizes $\alpha n + \mathcal{O}\sqrt{n}$ and $(1 - \alpha) n + \mathcal{O}\sqrt{n}$ with $\frac{1}{3} \leq \alpha \leq \frac{2}{3}$. To continue the process, the separator algorithm can be recursively applied to any region that has more than $r$ nodes. The total runtime of this algorithm is $\mathcal{O} \left (n \log \left (\frac{n}{r} \right ) \right )$. This process can be performed significantly faster, as demonstrated by Henzinger, to create $r$-division in $\mathcal{O}(n)$ time~\cite{henzinger1997faster}.
+=======
+Starting with the initial graph $G$, all of the nodes are in the interior region. A separator algorithm can then be applied to the graph with all of the node weights set to $\frac{1}{n}$. This will produce three sets: $A$, $B$, and $S$. From these two sets, we can infer two regions that have the node sets $A_1 \subseteq A \cup S$ and $A_2 \subseteq B \cup S$. These two node sets will have sizes $\alpha n + \mathcal{O}(\sqrt{n})$ and $(1 - \alpha) n + \mathcal{O}(\sqrt{n})$ with $\frac{1}{3} \leq \alpha \leq \frac{2}{3}$. To continue the process, the separator algorithm can be recursively applied to any region that has more than $r$ nodes. The total runtime of this algorithm is $\mathcal{O} \left (n \log \left (\frac{n}{r} \right ) \right )$. This process can be performed significantly faster, as demonstrated by Henzinger, to create $r$-division in $\mathcal{O}(n)$ time~\cite{henzinger1997faster}.
+
+\textcolor{red}{TODO: $r$-separators can be found in $\mathcal{O}(n\log r)$ time. Detail this algorithm. Provide intuition on how to go from that to $\mathcal{O}(n)$ time.}
+>>>>>>> Stashed changes
 
 \section{Single source shortest paths with non-negative edge weights}
 \label{sec:nonn-edge-weights}
@@ -330,16 +334,16 @@ Using $r=\frac{\log n}{\log \log n}$, the first phase is bounded above by
 \[
   O\left(n\frac{\sqrt{\log \log n}}{\sqrt{\log n}} \log n\right)= O(n \sqrt{\log n \log \log n}),
 \]
-the second phase is an SSSP in a size $\mathcal{O}(n \frac{\sqrt{\log \log n}}{\sqrt{\log n}})$ graph, and thus also $\mathcal{O}(n \sqrt{\log n \log \log n})$, while the tidying up is a series of SSSPs in each of the regions, and has the same bound as the first phase---$\mathcal{O}(n \sqrt{\log n \log \log n})$. The total time bound ends up $\mathcal{O}(n \sqrt{\log n \log \log n})$.
+The second phase is an SSSP in a size $\mathcal{O}(n \frac{\sqrt{\log \log n}}{\sqrt{\log n}})$ graph, and thus also $\mathcal{O}(n \sqrt{\log n \log \log n})$, while the tidying up is a series of SSSPs in each of the regions, and has the same bound as the first phase---$\mathcal{O}(n \sqrt{\log n \log \log n})$. The total time bound ends up $\mathcal{O}(n \sqrt{\log n \log \log n})$.
 
 \subsection{Recursive subdivisions}
 \label{sec:recursion}
 
-We have improved upon Dijkstra's algorithm, but there is still room to do better. A recursive subdivision $\bar{r} = (r_0, \ldots, r_h)$ of a graph is a division in which the regions are subdivided recursively up to edges. A region at level $i$ is sub-divided into regions of size $r_{i-1}$. The regions at level $0$ are called atomic and contain only one edge $uv$.
+The results of section \ref{sec:simple-algorithm} improved upon Dijkstra's algorithm, but there is still room to do better. A recursive subdivision $\bar{r} = (r_0, \ldots, r_h)$ of a graph is a division in which the regions are subdivided recursively up to edges. A region at level $i$ is sub-divided into regions of size $r_{i-1}$. The regions at level $0$ are called atomic and contain only one edge $uv$.
 
-For each region $R$, we maintain a priority queue $Q(R)$ that stores the subregions of $R$ if $R$ is nonatomic, or the single arc $uv$ is $R$ is atomic. We call and edge $uv$ \emph{active} if its head $v$ has a finite distance label $d(v)$, and \emph{inactive} if $d(v)$ is infinite. During execution, edges can change status from \emph{active} to \emph{inactive} several times. The algorithm ensures that for every region $R$, the minimum element of $Q(R)$ is the minimum label $d(v)$ over all edges $vw$ in $R$ that remain to be processed.
+For each region $R$, we maintain a priority queue $Q(R)$ that stores the subregions of $R$ if $R$ is nonatomic, or the single arc $uv$ is $R$ is atomic. We call an edge $uv$ \emph{active} if its head $v$ has a finite distance label $d(v)$, and \emph{inactive} if $d(v)$ is infinite. During execution, edges can change status from \emph{active} to \emph{inactive} several times. The algorithm ensures that for every region $R$, the minimum element of $Q(R)$ is the minimum label $d(v)$ over all edges $vw$ in $R$ that remain to be processed.
 
-We would like to apply Dijkstra's until completion in each region, and somehow bubble up the results on lower levels. Unfortunately, this idea does not lead to a faster algorithm. Instead, we try to work mostly on the lower levels and perform speculative work. The algorithm tries to ensure that, on average, the operations on large queues can be paid for by the many operations performed on small queues.
+We would like to apply Dijkstra's algorithm until completion in each region, and somehow bubble up the results on lower levels. Unfortunately, this idea does not lead to a faster algorithm. Instead, we try to work mostly on the lower levels and perform speculative work. The algorithm tries to ensure that, on average, the operations on large queues can be paid for by the many operations performed on small queues.
 
 \begin{algorithm}
   \refstepcounter{algorithm}
