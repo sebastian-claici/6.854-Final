@@ -584,24 +584,22 @@ The correctness proof did not rely on the $\alpha_i$ or $r_i$ and follows from s
 \section{Single source shortest paths with negative edge weights}
 \label{sec:arbitr-edge-weights}
 
-If we exploit the sparsity of planar graphs, the running time of Bellman-Ford is $\mathcal{O}(n^2)$. We have had success so far with planar graph separators, so it should come as no surprise that using separators here also leads to large speed-ups.
+If we exploit the sparsity of planar graphs, the running time of Bellman-Ford is $\mathcal{O}(n^2)$. We have had success so far with planar graph separators, so it should come as no surprise that using separators here also leads to significant speed-ups.
 
-In this section we assume that the source node $s$ is on the boundary of the infinite face $f_{\infty}$. Recall from section~\ref{sec:background} that we can always place a vertex on the boundary of $f_{\infty}$. We also make use of Klein's multiple-source shortest paths algorithm~\cite{klein2005multiple}. Klein's algorithm yields shortest paths from all nodes on the boundary of $f_{\infty}$ (the multiple sources) to all other nodes in $\mathcal{O}(n \log n)$ time.
+In this section we assume that the source node $s$ is on the boundary of the infinite face $f_{\infty}$. Recall from section~\ref{sec:background} that we can always place a vertex on the boundary of $f_{\infty}$. We also make use of Klein's multiple-source shortest paths algorithm~\cite{klein2005multiple}. Klein's algorithm yields shortest paths from all nodes on the boundary of $f_{\infty}$ (the multiple sources) to all other nodes in $\mathcal{O}(n \log n)$ time. We focus on the $\mathcal{O}(n\log^2 n)$  algorithm, and provide intuition into how to modify the algorithm to achieve an $O(\log \log n)$ speed-up.
 
 \subsection{An $\mathcal{O}(n \log^2 n)$ solution}
 \label{sec:first-solution}
 
-We first provide intuition into the algorithm. As with the simple non-negative shortest paths algorithm, we first find shortest paths from boundary vertices to other boundary vertices within all subregions. We can ``glue'' shortest paths within regions together to find true shortest paths between boundary vertices of separate regions. We then tidy up by finding shortest paths within each region.
-
-We focus on the $\mathcal{O}(n\log^2 n)$  algorithm, and provide intuition into how to modify the algorithm to achieve an $O(\log \log n)$ speed-up.
+We first provide intuition into the algorithm. As with the simple non-negative shortest paths algorithm, we first find shortest paths from boundary vertices to other boundary vertices within all subregions. We can ``glue'' shortest paths between boundary nodes within each region together to find true shortest paths between boundary vertices of separate regions. We then tidy up by finding shortest paths within each region.
 
 We give the high-level stages of the algorithm first. Assume that we are given a cycle separator of size $\mathcal{O}(\sqrt{n})$ that splits the graph into an outside $G_0$ and an inside $G_1$. Let $r$ be any vertex on the separator.
 
 \begin{enumerate}
 
-\item \textbf{Recursive call:} Recursively compute the distances from $r$ within $G_0$ and $G_1$.
+\item \textbf{Recursive call:} Recursively compute the distances from $r$ to all nodes within $G_0$ and $G_1$.
 
-\item \textbf{Intra-part boundary distances:} Use the multiple-source shortest paths algorithm of Klein to compute all distances in $G_0$ and $G_1$ between boundary vertices. Let $\delta_i(u,v)$ be the computed shortest distance between boundary vertices $u$ and $v$ in $G_i$.
+\item \textbf{Intra-part boundary distances:} Use Klein's multiple-source shortest paths algorithm to compute all distances in $G_0$ and $G_1$ between boundary vertices. Let $\delta_i(u,v)$ be the computed shortest distance between boundary vertices $u$ and $v$ in $G_i$.
 
 \item \textbf{Single-source inter-part boundary distances:} Use $\delta_0$ and $\delta_1$ to compute a table $B$ such that $B[v]$ is the $r$-to-$v$ distance in $G$.
 
@@ -633,7 +631,7 @@ Pseudocode for the algorithm follows.
     \end{algorithmic}
 \end{algorithm}
 
-From the recursive call, we already have shortest path distances in each region. We can define a price function to make the edge costs non-negative, and use Klein's algorithm to compute shortest-path trees for each node on the outer face. Note that a hole here is simply a cycle separator that splits the graph into an outside and an inside. For the case where we have two regions and a $\mathcal{O}(\sqrt{n})$ separator, we can compute distances in $\mathcal{O}(n\log n)$ time. 
+From the recursive call, we already have shortest path distances in each region. We can define a price function to make the edge costs non-negative and use Klein's algorithm to compute shortest-path trees for each node on the outer face. Note that a hole here is simply a cycle separator that splits the graph into an outside and an inside. For the case where we have two regions and a $\mathcal{O}(\sqrt{n})$ separator, we can compute distances in $\mathcal{O}(n\log n)$ time. 
 
 This procedure is illustrated in figure~\ref{fig:long-path-a}.
 
@@ -642,7 +640,7 @@ This procedure is illustrated in figure~\ref{fig:long-path-a}.
 We now want to compute the distance in $G$ between any two boundary nodes. We will need the following lemma:\\
 
 \begin{lemma}
-If $v$ and $u$ are two boundary nodes, and $P$ be a simple path between them, then $P$ can be decomposed as $P=P_1P_2\ldots P_k$, where each $P_i$ is a path between two boundary nodes and is included in $G_{i \text{ mod } 2}$.
+If $v$ and $u$ are two boundary nodes, and $P$ is a simple path between them, then $P$ can be decomposed as $P=P_1P_2\ldots P_k$, where each $P_i$ is a path between two boundary nodes and is included in $G_{i \text{ mod } 2}$.
 \end{lemma}
 
 \begin{proof}
@@ -665,7 +663,7 @@ This is illustrated in figure~\ref{fig:long-path-b}.
   \label{fig:long-path}
 \end{figure}
 
-Let $V_c$ be the boundary vertices. As they form a cycle we can order the vertices in $V_c$ in trigonometric order. The algorithm is as follows:
+Let $V_c$ be the boundary vertices. As they form a cycle we can order the vertices $V_c$ in trigonometric order. The algorithm is as follows:
 
 \begin{algorithm}[!htb]
   \refstepcounter{algorithm}
@@ -691,7 +689,7 @@ After table $e_j$ is updated, $e_j[v]$ will be the length of the shortest $r$-to
 \end{lemma}
 
 \begin{proof}
-We use induction. The case $j=1$ is obvious, as $\delta_i(v,w)$ is the length of the shortest $v$-to-$w$ path in $G_i$. For the induction step, suppose there were a shorter path $P' = P'_1P'_2\ldots P'_j$. Let $Q = P'_1P'_2\ldots P'_{j-1}$. Let $r$ and $u$ be the end vertices of $Q$. We know $e_j[v] \leq e_{j-1}[u] + \delta_{j\mod 2}(u,v)$. We have $\text{len}(P') = \text{len}(Q) + \delta_{j\mod 2}(u,v)$. But $e_{j-1}[u]\geq \text{len}(Q)$ (by the induction hypothesis), so $e_j[v]\leq \text{len}(P')$, thus $P'$ is not shorter than the $e_j[v]$-length path.
+We use induction. The case where $j=1$ is obvious, as $\delta_i(v,w)$ is the length of the shortest $v$-to-$w$ path in $G_i$. For the induction step, suppose there were a shorter path $P' = P'_1P'_2\ldots P'_j$. Let $Q = P'_1P'_2\ldots P'_{j-1}$. Let $r$ and $u$ be the end vertices of $Q$. We know $e_j[v] \leq e_{j-1}[u] + \delta_{j\mod 2}(u,v)$. We have $\text{len}(P') = \text{len}(Q) + \delta_{j\mod 2}(u,v)$. But $e_{j-1}[u]\geq \text{len}(Q)$ (by the induction hypothesis), so $e_j[v]\leq \text{len}(P')$, thus $P'$ is not shorter than the $e_j[v]$-length path.
 \end{proof}
 
 If this algorithm were to run \textit{exactly} like Bellman-Ford, the runtime would be $|V_c|^3 = \mathcal{O}(n\sqrt{n})$, which is not the time bound we want. The improvement comes from the fact that we ordered $V_c$ trigonometrically. Specifically, note that computing $e_j[x]$ for a fixed $j$ and variable $x$ takes $|V_c|^2$ time. We will imporve this using Monge convexity as follows: let $A$ be a $|V_c|$x$|V_c|$ matrix such that $a_{kl} = e_{j-1}[v_k]+\delta_i(v_k,v_l)$. It is clear that $e_j[v_i]$ is the minima in column $j$. We will prove that the upper and lower triangles are Monge convex.\\
@@ -716,7 +714,7 @@ The function $\phi$ is a feasible price function for $G_i'$.
 \end{lemma}
 
 \begin{proof}
-Let $(u,v)$ be an edge of $G_i'$. We have that $v\neq r'$, so $\phi(v) = d_{G_i}(r_{G_i},v)$. If also $u\neq r'$ we have that $\phi(u) + w((u,v)) -\phi(v) = d_{G_i}(r_{G_i},u) + w((u,v)) - d_{G_i}(r_{G_i},v)\geq 0$ from the triangle inequality. Otherwise, we have that $\phi(u)+c(u,v)-\phi(v) = D + d_G(r,v) - d_{G_i}(r_{G_i},v)\geq 0$ by definition of $D$.
+Let $(u,v)$ be an edge of $G_i'$. We have that $v\neq r'$, so $\phi(v) = d_{G_i}(r_{G_i},v)$. If $u\neq r'$, we have that $\phi(u) + w((u,v)) -\phi(v) = d_{G_i}(r_{G_i},u) + w((u,v)) - d_{G_i}(r_{G_i},v)\geq 0$ from the triangle inequality. Otherwise, we have that $\phi(u)+c(u,v)-\phi(v) = D + d_G(r,v) - d_{G_i}(r_{G_i},v)\geq 0$ by definition of $D$.
 \end{proof}
 
 We can now apply Dijkstra to find the inter-part distances. The running time of this stage is $O(n \log n)$.
@@ -745,9 +743,9 @@ If we choose $p=\log n/\alpha(n)$, the $\mathcal{O}(n\log^2 n/\log \log n)$ boun
 \section{Conclusion}
 \label{sec:conclusion}
 
-From integrated circuit design to network design to path-planning in robotics, planar graphs frequently occur in day-to-day life. By understanding the unique properties of planar graphs and how to exploit their structure, it is possible to address many of the common issues prevalent in many domains. The fundamental step in many planar graph algorithms is to find a smaller subset of the problem to solve first for a divide-and-conquer approach. Planar graph separators enable complex problems, such as shortest path, to be solved in an efficient manner. Expanding to application, shortest path represents one of the many canonical algorithms that can be applied to planar graphs. Like in their non-planar counterparts, shortest path can be used to address many real-world problems such as robotic navigation. Adding in negative edge costs allows for richer and more complex problems, such as shipping commodities through many different channels where profit effects may result in negative costs.
+From integrated circuits to network design to robotic path-planning, planar graphs are prevalent in day-to-day life. By understanding the unique properties of planar graphs and how to exploit their structure, it is possible to address many of the common issues present across diverse disciplines. The fundamental step in many planar graph algorithms is to find a smaller subset of the problem to solve first for a divide-and-conquer approach. Planar graph separators enable complex problems, such as shortest path, to be solved in an efficient manner. Expanding to application, shortest path represents one of the many canonical algorithms that can be applied to planar graphs. Like in their non-planar counterparts, shortest path can be used to address many real-world problems such as robotic navigation. Adding in negative edge costs allows for richer and more complex problems, such as shipping commodities through many different channels where profit effects may result in negative costs.
 
-In this paper, we have presented the intuition behind algorithms for planar graph separators, non-negative single-source shortest path, and negative weight shortest path in planar graphs. We hope we have shown more clearly that restricting ourselves to certain classes of graphs can lead to beautiful, yet simple, solutions to many common problems.
+In this paper, we have presented the intuition behind algorithms for planar graph separators, non-negative single-source shortest path, and arbitrary real weight shortest path in planar graphs. We hope that we have shown more clearly how restricting ourselves to certain classes of graphs can lead to beautiful, yet simple, solutions to many common problems.
 
 \clearpage
 \bibliographystyle{plain}
